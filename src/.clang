@@ -1,0 +1,28 @@
+-isystem "C:\Program Files (x86)\GNU Tools ARM Embedded\5.4 2016q3\arm-none-eabi\include\c++\5.4.1"
+-isystem "C:\Program Files (x86)\GNU Tools ARM Embedded\5.4 2016q3\arm-none-eabi\include\c++\5.4.1\arm-none-eabi"
+-isystem "C:\Program Files (x86)\GNU Tools ARM Embedded\5.4 2016q3\arm-none-eabi\include\c++\5.4.1\backward"
+-isystem "C:\Program Files (x86)\GNU Tools ARM Embedded\5.4 2016q3\arm-none-eabi\include"
+-isystem "C:\Program Files (x86)\GNU Tools ARM Embedded\5.4 2016q3\arm-none-eabi\include-fixed"
+
+-I mbed-os
+-I mbed-os\platform
+-I mbed-os\drivers
+-I mbed-os\cmsis
+-I mbed-os\hal
+-I mbed-os\rtos
+-I mbed-os\rtos\rtx
+-I mbed-os\rtos\rtx\TARGET_CORTEX_M
+-I mbed-os\targets\TARGET_NXP
+-I mbed-os\targets\TARGET_NXP\TARGET_LPC176X
+-I mbed-os\targets\TARGET_NXP\TARGET_LPC176X\device
+-I mbed-os\targets\TARGET_NXP\TARGET_LPC176X\TARGET_MBED_LPC1768
+
+-I .
+
+-c
+-x c++
+-std=c++11
+
+-ferror-limit=10000
+
+-D TOOLCHAIN_ARM_STD
