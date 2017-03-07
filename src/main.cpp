@@ -52,6 +52,9 @@ int main(void) {
     USBport.printf("|=====================|\r\n");
     USBport.printf("\r\n");
 
+#if ABK_SIMULATE
+    USBport.printf("SIMULATOR MODE ON\r\n");
+#endif
 
     ABK_app_thread.start(ABK_app_task);
 
