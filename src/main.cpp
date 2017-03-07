@@ -16,7 +16,6 @@
 
 Watchdog wdog;
 
-// CANopen
 volatile uint16_t   ABK_timer1ms = 0U;   // variable increments each millisecond
 
 extern "C" void mbed_reset();
@@ -28,6 +27,7 @@ Ticker ticker_leds;
 // Serial
 Serial USBport(ISP_TXD, ISP_RXD);
 
+Thread ABK_app_thread;
 
 int main(void) {
 
@@ -52,9 +52,14 @@ int main(void) {
     USBport.printf("|=====================|\r\n");
     USBport.printf("\r\n");
 
+
+    ABK_app_thread.start(ABK_app_task);
+
     while(true) {
         led1 = !led1;
         wdog.kick();
+
+        Thread::wait(10);
     }
 
     // Reset
@@ -71,4 +76,71 @@ static void ABK_timer1ms_task(void) {
 // Led update task
 static void ABK_leds_task(void) {
     led2 = !led2;
+}
+
+static void ABK_app_task(void) {
+    ABK_state_t state = ABK_STATE_STANDBY;
+    ABK_config_t config;
+
+    bool _triggered = false;
+    uint16_t _trigger_time = 0U;
+    uint16_t _stime = 0U;
+    uint16_t _ptime = 0U;
+
+    // get_eeprom data
+    if (true) { // get_eeprom data success
+        state = ABK_STATE_CONFIGURED;
+    } else {
+        state = ABK_STATE_NOT_CONFIGURED;
+    }
+
+    while (state != ABK_STATE_RESET) {
+        if (state == ABK_STATE_RUN) {
+            if (ac_trigger != 0) {
+                _triggered = true;
+                _trigger_time = ABK_timer1ms;
+            }
+
+            if (_triggered) {
+                _stime = ABK_timer1ms - _trigger_time; // Update time since trigger
+
+                if (_stime >= config.start_time && _stime < config.p1.time) {
+                    ABK_set_drum_mode(ABK_DRUM_ENGAGED);
+
+                    float rspeed = ABK_map(config.start_time, config.p1.time,
+                           0, config.p1.speed, _stime);
+                    ABK_set_speed(rspeed);
+                }
+                else if (_stime >= config.p1.time && _stime < config.p2.time) {
+                    ABK_set_drum_mode(ABK_DRUM_BRAKED);
+
+                    float rspeed = ABK_map(config.p1.time, config.p2.time,
+                            config.p1.speed, config.p2.speed, _stime);
+                    ABK_set_speed(rspeed);
+                }
+                else if (_stime >= config.p2.time && _stime < config.stop_time) {
+                    ABK_set_drum_mode(ABK_DRUM_BRAKED);
+
+                    float rspeed = ABK_map(config.p1.time, config.p2.time,
+                            config.p1.speed, config.p2.speed, _stime);
+                    ABK_set_speed(rspeed);
+                }
+                else if (_stime >= config.stop_time) {
+                    ABK_set_speed(0);
+                    ABK_set_drum_mode(ABK_DRUM_FULLSTOP);
+                } else {
+                    ABK_set_speed(0);
+                    ABK_set_drum_mode(ABK_DRUM_FULLSTOP);
+                }
+            } else {
+                ABK_set_speed(0);
+                ABK_set_drum_mode(ABK_DRUM_FULLSTOP);
+            }
+
+        } else {
+            ABK_set_speed(0);
+            ABK_set_drum_mode(ABK_DRUM_FULLSTOP);
+        }
+        Thread::wait(1);
+    }
 }
