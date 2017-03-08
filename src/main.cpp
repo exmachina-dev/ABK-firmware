@@ -27,9 +27,14 @@ Ticker ticker_leds;
 // Serial
 Serial USBport(ISP_TXD, ISP_RXD);
 
+// USBRamdisk
+USBRamdisk  msd;
+
 Thread ABK_app_thread;
 
 int main(void) {
+    msd.disk_initialize();
+    msd.connect();
 
 #if MBED_CONF_APP_MEMTRACE
     mbed_stats_heap_t heap_stats;
