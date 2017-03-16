@@ -27,6 +27,11 @@ Ticker ticker_leds;
 // Serial
 Serial USBport(ISP_TXD, ISP_RXD);
 
+// EEPROM
+#if ABK_HAS_EEPROM
+C24LCXX_I2C eeprom(I2C2_SDA, I2C2_SCL, 0xA0);
+#endif
+
 Thread ABK_app_thread;
 
 int main(void) {
@@ -91,10 +96,12 @@ static void ABK_app_task(void) {
     uint16_t _ptime = 0U;
 
     // get_eeprom data
-    if (true) { // get_eeprom data success
+    if (ABK_eeprom_read_config(&eeprom, &config)) { // get_eeprom data success
         state = ABK_STATE_CONFIGURED;
+        printf("Configured\r\n");
     } else {
         state = ABK_STATE_NOT_CONFIGURED;
+        printf("Not configured\r\n");
     }
 
     while (state != ABK_STATE_RESET) {
