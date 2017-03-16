@@ -58,8 +58,10 @@
 
 #define I2C0_SDA        P0_28
 #define I2C0_SCL        P0_27
-#define I2C1_SDA        P0_10
-#define I2C1_SCL        P0_11
+#define I2C1_SDA        P0_0
+#define I2C1_SCL        P0_1
+#define I2C2_SDA        P0_10
+#define I2C2_SCL        P0_11
 
 #define USB_DP          P0_29
 #define USB_DN          P0_30
