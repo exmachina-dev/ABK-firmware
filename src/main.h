@@ -8,12 +8,22 @@
 #ifndef MAIN_H
 #define MAIN_H
 
+#include "config.h"
+
 #include "watchdog.h"
 
 #include "ABKcontrol.h"
 #include "pins.h"
 
 #include "mbed.h"
+
+#if ABK_HAS_LCD
+#include "TextLCD.h"
+#endif
+
+#if ABK_HAS_EEPROM
+#include "24LCxx_I2C.h"
+#endif
 
 static void ABK_timer1ms_task(void);
 static void ABK_leds_task(void);
