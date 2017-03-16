@@ -26,3 +26,4 @@
 -ferror-limit=10000
 
 -D TOOLCHAIN_ARM_STD
+-D TARGET_LPC1768
