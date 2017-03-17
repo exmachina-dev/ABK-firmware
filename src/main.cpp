@@ -31,7 +31,7 @@ Serial USBport(ISP_TXD, ISP_RXD);
 
 // EEPROM
 #if ABK_HAS_EEPROM
-C24LCXX_I2C eeprom(I2C2_SDA, I2C2_SCL, 0xA0);
+C24LCXX_I2C eeprom(I2C0_SDA, I2C0_SCL, 0x50);
 #endif
 
 #if !ABK_TEST
