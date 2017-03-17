@@ -16,7 +16,7 @@
 
 Watchdog wdog;
 
-volatile uint16_t   ABK_timer1ms = 0U;   // variable increments each millisecond
+volatile uint32_t   ABK_timer1ms = 0U;   // variable increments each millisecond
 
 extern "C" void mbed_reset();
 
