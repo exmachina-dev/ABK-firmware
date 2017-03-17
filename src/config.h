@@ -8,9 +8,13 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-#define ABK_HAS_LCD     1
-#define ABK_HAS_EEPROM  1
+#define ABK_HAS_LCD         0
+#define ABK_HAS_EEPROM      1
+#define ABK_HAS_USBSERIAL   1
 
-#define ABK_SIMULATE    1
+#define ABK_SIMULATE        1
+#define ABK_TEST            0
+
+#define ABK_INTERVAL        (10)
 
 #endif /* !CONFIG_H */
