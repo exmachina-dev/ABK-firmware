@@ -8,6 +8,8 @@
 #ifndef PINS_H
 #define PINS_H
 
+#include "config.h"
+
 #include "PinNames.h"
 #include "mbed.h"
 
@@ -84,7 +86,11 @@ DigitalOut led6(LED_HMI4);
 // Inputs
 DigitalIn drive_status1(DRV_STS1);
 DigitalIn drive_status2(DRV_STS2);
+#if ABK_SIMULATE
+bool ac_trigger;
+#else
 DigitalIn ac_trigger(TRIGG_INPUT2);
+#endif
 DigitalIn drum_limit(LIMIT_SW1);
 DigitalIn emergency_stop(EMERGENCY_STOP);
 
