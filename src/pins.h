@@ -58,8 +58,8 @@
 #define ADC_TEMP0       P0_24
 #define ADC_TEMP1       P0_23
 
-#define I2C0_SDA        P0_28
-#define I2C0_SCL        P0_27
+#define I2C0_SDA        P0_27
+#define I2C0_SCL        P0_28
 #define I2C1_SDA        P0_0
 #define I2C1_SCL        P0_1
 #define I2C2_SDA        P0_10
