@@ -44,26 +44,26 @@ int ABK_set_speed(float speed) {
     return 0;
 }
 
-float ABK_map(int from_min, int from_max, int to_min, int to_max, int value) {
-    return ABK_map(from_min, from_max, to_min, to_max, (float) value);
+float ABK_map(int from_val1, int from_val2, int to_val1, int to_val2, int value) {
+    return ABK_map(from_val1, from_val2, to_val1, to_val2, (float) value);
 }
 
-float ABK_map(int from_min, int from_max, int to_min, int to_max, float value) {
+float ABK_map(int from_val1, int from_val2, int to_val1, int to_val2, float value) {
     float res = 0.0;
-    res = to_min + (float) ((value-from_min)/(from_max-from_min)) * (float) (to_max-to_min);
+    res = to_val1 + (float) ((value-from_val1)/(from_val2-from_val1)) * (float) (to_val2-to_val1);
 
-    // Don't clamp to_min and to_max, check to_max < res < to_min also
-    if (!((float) to_min > res > (float) to_max)) {
-        if (res < (float) to_min)
-            return (float) to_min;
-        else if (res > (float) to_max)
-            return (float) to_max;
+    // Don't clamp to to_val1 and to_val2, check to_val2 < res < to_val1 also
+    if (!((float) to_val1 > res > (float) to_val2)) {
+        if (res < (float) to_val1)
+            return (float) to_val1;
+        else if (res > (float) to_val2)
+            return (float) to_val2;
     }
-    else if (!((float) to_max < res < (float) to_min)) {
-        if (res < (float) to_max)
-            return (float) to_max;
-        else if (res > (float) to_min)
-            return (float) to_min;
+    else if (!((float) to_val2 < res < (float) to_val1)) {
+        if (res < (float) to_val2)
+            return (float) to_val2;
+        else if (res > (float) to_val1)
+            return (float) to_val1;
     }
 
     return res;

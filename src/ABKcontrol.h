@@ -71,8 +71,8 @@ typedef enum {
 void ABK_set_drum_mode(ABK_drum_mode_t);
 int ABK_set_speed(float speed);
 
-float ABK_map(int from_min, int from_max, int to_min, int to_max, int value);
-float ABK_map(int from_min, int from_max, int to_min, int to_max, float value);
+float ABK_map(int from_val1, int from_val2, int to_val1, int to_val2, int value);
+float ABK_map(int from_val1, int from_val2, int to_val1, int to_val2, float value);
 
 bool ABK_eeprom_read_config(C24LCXX_I2C *eeprom, ABK_config_t *config);
 bool ABK_eeprom_write_config(C24LCXX_I2C *eeprom, ABK_config_t *config);
