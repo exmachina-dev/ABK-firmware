@@ -28,30 +28,38 @@ extern DigitalOut dir_fw;
 extern DigitalOut dir_rw;
 extern PwmOut motor_ctl;
 
-typedef struct {
+struct ABK_eeprom_data_s {
     unsigned char eeprom_version;
     unsigned char eeprom_state;
     unsigned char config[ABK_EEPROM_CONF_SIZE];
-} ABK_eeprom_data_t;
+} __attribute__((packed));
 
-typedef union {
+typedef ABK_eeprom_data_s ABK_eeprom_data_t;
+
+union ABK_eeprom_u {
     unsigned char raw[ABK_EEPROM_DATA_SIZE];
     ABK_eeprom_data_t data;
-} ABK_eeprom_t;
+} __attribute__((packed));
 
-typedef struct {
+typedef ABK_eeprom_u ABK_eeprom_t;
+
+struct ABK_point_s {
     uint16_t time;
     uint16_t speed;
-} ABK_point_t;
+} __attribute__((packed));
 
-typedef struct {
+typedef ABK_point_s ABK_point_t;
+
+struct ABK_config_s {
     uint8_t state;
     uint16_t start_time;
     ABK_point_t p1;
     ABK_point_t p2;
     uint16_t stop_time;
     uint8_t unused;
-} ABK_config_t;
+} __attribute__((packed));
+
+typedef ABK_config_s ABK_config_t;
 
 typedef enum {
     ABK_STATE_STANDBY = 0,
