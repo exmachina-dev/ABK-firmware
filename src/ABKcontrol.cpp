@@ -53,13 +53,13 @@ float ABK_map(int from_val1, int from_val2, int to_val1, int to_val2, float valu
     res = to_val1 + (float) ((value-from_val1)/(from_val2-from_val1)) * (float) (to_val2-to_val1);
 
     // Don't clamp to to_val1 and to_val2, check to_val2 < res < to_val1 also
-    if (!((float) to_val1 > res > (float) to_val2)) {
+    if (res < (float) to_val1 || res > (float) to_val2) {
         if (res < (float) to_val1)
             return (float) to_val1;
         else if (res > (float) to_val2)
             return (float) to_val2;
     }
-    else if (!((float) to_val2 < res < (float) to_val1)) {
+    else if (res < (float) to_val2 || res > (float) to_val1) {
         if (res < (float) to_val2)
             return (float) to_val2;
         else if (res > (float) to_val1)
