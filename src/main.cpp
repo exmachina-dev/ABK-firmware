@@ -146,7 +146,6 @@ static void ABK_app_task(void) {
     bool _triggered = false;
     uint32_t _trigger_time = 0U;
     uint16_t _stime = 0U;
-    uint16_t _ptime = 0U;
 
     // get_eeprom data
     if (ABK_eeprom_read_config(&eeprom, &config)) { // get_eeprom data success
