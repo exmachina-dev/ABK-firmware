@@ -52,10 +52,19 @@ float ABK_map(int from_min, int from_max, int to_min, int to_max, float value) {
     float res = 0.0;
     res = to_min + (float) ((value-from_min)/(from_max-from_min)) * (float) (to_max-to_min);
 
-    if (res > (float) to_max)
-        return (float) to_max;
-    else if (res < (float) to_min)
-        return (float) to_min;
+    // Don't clamp to_min and to_max, check to_max < res < to_min also
+    if (!((float) to_min > res > (float) to_max)) {
+        if (res < (float) to_min)
+            return (float) to_min;
+        else if (res > (float) to_max)
+            return (float) to_max;
+    }
+    else if (!((float) to_max < res < (float) to_min)) {
+        if (res < (float) to_max)
+            return (float) to_max;
+        else if (res > (float) to_min)
+            return (float) to_min;
+    }
 
     return res;
 }
