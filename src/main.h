@@ -27,5 +27,6 @@
 
 static void ABK_leds_task(void);
 static void ABK_app_task(void);
+static void ABK_serial_task(void);
 
 #endif /* !MAIN_H */

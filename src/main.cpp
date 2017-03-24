@@ -28,7 +28,11 @@ Ticker ticker_leds;
 Timer ABK_timer;
 
 // Serial
+#if ABK_HAS_USBSERIAL
 Serial USBport(ISP_TXD, ISP_RXD);
+#else
+Serial USBport(ISP_TXD, ISP_RXD);
+#endif
 
 // EEPROM
 #if ABK_HAS_EEPROM
@@ -37,6 +41,7 @@ AT24CXX_I2C eeprom(I2C0_SDA, I2C0_SCL, 0x50);
 
 #if !ABK_TEST
 Thread ABK_app_thread;
+Thread ABK_serial_thread;
 #endif
 
 int main(void) {
@@ -109,6 +114,7 @@ int main(void) {
 
 
     ABK_app_thread.start(ABK_app_task);
+    ABK_serial_thread.start(ABK_serial_task);
 
     while(true) {
         led1 = !led1;
@@ -236,5 +242,21 @@ static void ABK_app_task(void) {
             ABK_set_drum_mode(ABK_DRUM_FULLSTOP);
         }
         Thread::wait(ABK_INTERVAL);
+    }
+}
+
+static void ABK_serial_task(void) {
+    char c;
+    while (true) {
+        if (USBport.readable()) {
+            c = USBport.getc();
+            if (c == '\n' || c == '\r') {
+                USBport.putc('\r');
+                USBport.putc('\n');
+            } else
+                USBport.putc(c);
+        }
+
+        Thread::wait(100);
     }
 }
