@@ -22,7 +22,7 @@
 #endif
 
 #if ABK_HAS_EEPROM
-#include "24LCxx_I2C.h"
+#include "AT24Cxx_I2C.h"
 #endif
 
 static void ABK_timer1ms_task(void);

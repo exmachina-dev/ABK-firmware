@@ -10,7 +10,7 @@
 
 #include "mbed.h"
 
-#include "24LCxx_I2C.h"
+#include "AT24Cxx_I2C.h"
 
 #define ABK_MOT_MIN_DT      (50)
 #define ABK_MOT_MAX_DT      (80)
@@ -82,8 +82,8 @@ int ABK_set_speed(float speed);
 float ABK_map(int from_val1, int from_val2, int to_val1, int to_val2, int value);
 float ABK_map(int from_val1, int from_val2, int to_val1, int to_val2, float value);
 
-bool ABK_eeprom_read_config(C24LCXX_I2C *eeprom, ABK_config_t *config);
-bool ABK_eeprom_write_config(C24LCXX_I2C *eeprom, ABK_config_t *config);
-bool ABK_eeprom_erase_config(C24LCXX_I2C *eeprom);
+bool ABK_eeprom_read_config(AT24CXX_I2C *eeprom, ABK_config_t *config);
+bool ABK_eeprom_write_config(AT24CXX_I2C *eeprom, ABK_config_t *config);
+bool ABK_eeprom_erase_config(AT24CXX_I2C *eeprom);
 
 #endif /* !ABKCONTROL_H */

@@ -69,38 +69,71 @@ float ABK_map(int from_val1, int from_val2, int to_val1, int to_val2, float valu
     return res;
 }
 
-bool ABK_eeprom_read_config(C24LCXX_I2C *eeprom, ABK_config_t *config) {
+bool ABK_eeprom_read_config(AT24CXX_I2C *eeprom, ABK_config_t *config) {
     ABK_eeprom_t eedata;
-    std::vector<unsigned char> vdata(eedata.raw, eedata.raw + ABK_EEPROM_DATA_SIZE);
 
-    bool ret = eeprom->Read(ABK_EEPROM_START_ADDRESS, vdata, false, ABK_EEPROM_DATA_SIZE);
-    memcpy(config, &vdata, ABK_EEPROM_CONF_SIZE);
+    bool ret = eeprom->read(ABK_EEPROM_START_ADDRESS, eedata.raw, ABK_EEPROM_DATA_SIZE);
+    memcpy(config, &eedata.data.config, ABK_EEPROM_CONF_SIZE);
+
+    printf("ptr: %d\r\n", (int)config);
+    printf("ptr: %d\r\n", (int)eedata.raw);
+    printf("raw");
+    for (int i=0; i<ABK_EEPROM_DATA_SIZE; i++)
+        printf(" %d", eedata.raw[i]);
+    printf("\r\n");
 
     return ret;
 }
 
-bool ABK_eeprom_write_config(C24LCXX_I2C *eeprom, ABK_config_t *config) {
+bool ABK_eeprom_write_config(AT24CXX_I2C *eeprom, ABK_config_t *config) {
     ABK_eeprom_t eedata;
     eedata.data.eeprom_version = ABK_EEPROM_VERSION;
     eedata.data.eeprom_state = ABK_EEPROM_STATE_PRESENT;
-    memcpy(&eedata.data.config, config, ABK_EEPROM_CONF_SIZE);
+    memcpy(eedata.data.config, config, ABK_EEPROM_CONF_SIZE);
 
-    bool ret = eeprom->Write(ABK_EEPROM_START_ADDRESS, eedata.raw, false, ABK_EEPROM_DATA_SIZE);
+    bool ret = eeprom->write(ABK_EEPROM_START_ADDRESS, eedata.raw, ABK_EEPROM_DATA_SIZE);
 
     return ret;
 }
 
-bool ABK_eeprom_erase_config(C24LCXX_I2C *eeprom) {
-    eeprom->EraseMemoryArea(ABK_EEPROM_START_ADDRESS, ABK_EEPROM_START_ADDRESS + ABK_EEPROM_DATA_SIZE);
+bool ABK_eeprom_erase_config(AT24CXX_I2C *eeprom) {
+    bool ret;
+    char zdata[ABK_EEPROM_DATA_SIZE];
+    for (int i=0; i<ABK_EEPROM_DATA_SIZE; i++)
+        zdata[i] = 1;
+
+    ret = eeprom->write(ABK_EEPROM_START_ADDRESS, zdata, ABK_EEPROM_DATA_SIZE);
+    printf("%d", ret);
     ABK_eeprom_t eedata;
     ABK_config_t config;
     eedata.data.eeprom_version = ABK_EEPROM_VERSION;
-    eedata.data.eeprom_state = ABK_EEPROM_STATE_PRESENT;
+    eedata.data.eeprom_state = ABK_EEPROM_STATE_BLANK;
 
     config.state = 0;
+    config.start_time = 0;
+    config.p1.time = 0;
+    config.p1.speed = 0;
+    config.p2.time = 0;
+    config.p2.speed = 0;
+    config.stop_time = 0;
 
-    memcpy(eedata.data.config, &config, ABK_EEPROM_CONF_SIZE);
+    memcpy(&eedata.data.config, &config, ABK_EEPROM_CONF_SIZE);
 
-    bool ret = eeprom->Write(ABK_EEPROM_START_ADDRESS, eedata.raw, false, ABK_EEPROM_DATA_SIZE);
+    printf("orig");
+    for (int i=0; i<ABK_EEPROM_DATA_SIZE; i++)
+        printf(" %d", eedata.raw[i]);
+    printf("\r\n");
+
+    ret = eeprom->write(ABK_EEPROM_START_ADDRESS, eedata.raw, ABK_EEPROM_DATA_SIZE);
+    printf("%d", ret);
+
+    unsigned char rdata[ABK_EEPROM_DATA_SIZE];
+    eeprom->read(ABK_EEPROM_START_ADDRESS, rdata, ABK_EEPROM_DATA_SIZE);
+    printf("%d", ret);
+
+    printf("raw");
+    for (int i=0; i<ABK_EEPROM_DATA_SIZE; i++)
+        printf(" %d", rdata[i]);
+    printf("\r\n");
     return ret;
 }
