@@ -25,7 +25,6 @@
 #include "AT24Cxx_I2C.h"
 #endif
 
-static void ABK_timer1ms_task(void);
 static void ABK_leds_task(void);
 static void ABK_app_task(void);
 

@@ -21,10 +21,11 @@ volatile uint32_t   ABK_timer1ms = 0U;   // variable increments each millisecond
 extern "C" void mbed_reset();
 
 #if !ABK_TEST
-Ticker ticker_1ms;
 Ticker ticker_sync;
 Ticker ticker_leds;
 #endif
+
+Timer ABK_timer;
 
 // Serial
 Serial USBport(ISP_TXD, ISP_RXD);
@@ -51,7 +52,6 @@ int main(void) {
     USBport.baud(115200);
 
 #if !ABK_TEST
-    ticker_1ms.attach_us(&ABK_timer1ms_task, 1000);
     ticker_leds.attach(&ABK_leds_task, 10);
 #endif
 
@@ -105,6 +105,8 @@ int main(void) {
 
 #else
 
+    ABK_timer.start();
+
 
     ABK_app_thread.start(ABK_app_task);
 
@@ -127,11 +129,6 @@ int main(void) {
 
     return 1;
 #endif
-}
-
-// Timer update task
-static void ABK_timer1ms_task(void) {
-    ABK_timer1ms++;
 }
 
 // Led update task
@@ -186,11 +183,12 @@ static void ABK_app_task(void) {
         if (state == ABK_STATE_RUN) {
             if (!_triggered && ac_trigger != 0) {
                 _triggered = true;
-                _trigger_time = ABK_timer1ms;
+                _trigger_time = ABK_timer.read_ms();
+                ABK_timer.reset();
             }
 
             if (_triggered) {
-                _stime = ABK_timer1ms - _trigger_time; // Update time since trigger
+                _stime = ABK_timer.read_ms(); // Update time since trigger
                 led1 = !led1;
                 USBport.printf("stime: %d ", _stime);
 
