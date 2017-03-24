@@ -148,6 +148,19 @@ int main(void) {
         wdog.kick();
     }
 
+    short test_data = 0;
+    bool test_ew = eeprom.Write(0, (short)12);
+    bool test_er = eeprom.Read(0, &test_data);
+
+    if (test_ew && test_er) {
+        led1 = 1;
+        brake = 1;
+        dir_fw = 1;
+    } else {
+        dir_fw = 1;
+        dir_rw = 1;
+    }
+
 #else
 
     ABK_timer.start();
