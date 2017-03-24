@@ -15,11 +15,11 @@
 #define ABK_MOT_MIN_DT      (50)
 #define ABK_MOT_MAX_DT      (80)
 
-#define ABK_EEPROM_VERSION          (01)
-#define ABK_EEPROM_STATE_BLANK      (00)
-#define ABK_EEPROM_STATE_PRESENT    (01)
-#define ABK_EEPROM_DATA_SIZE        (16)
-#define ABK_EEPROM_CONF_SIZE        (14)
+#define ABK_EEPROM_VERSION          (2)
+#define ABK_EEPROM_STATE_BLANK      (0)
+#define ABK_EEPROM_STATE_PRESENT    (1)
+#define ABK_EEPROM_CONF_SIZE        (16)
+#define ABK_EEPROM_DATA_SIZE        (ABK_EEPROM_CONF_SIZE + 2)
 #define ABK_EEPROM_START_ADDRESS    (0)
 
 extern DigitalOut brake;
@@ -36,19 +36,17 @@ struct ABK_eeprom_data_s {
 
 typedef ABK_eeprom_data_s ABK_eeprom_data_t;
 
-union ABK_eeprom_u {
+typedef union {
     unsigned char raw[ABK_EEPROM_DATA_SIZE];
     ABK_eeprom_data_t data;
-} __attribute__((packed));
-
-typedef ABK_eeprom_u ABK_eeprom_t;
+} ABK_eeprom_t;
 
 struct ABK_point_s {
     uint16_t time;
     uint16_t speed;
 } __attribute__((packed));
 
-typedef ABK_point_s ABK_point_t;
+typedef struct ABK_point_s ABK_point_t;
 
 struct ABK_config_s {
     uint8_t state;
@@ -59,7 +57,7 @@ struct ABK_config_s {
     uint8_t unused;
 } __attribute__((packed));
 
-typedef ABK_config_s ABK_config_t;
+typedef struct ABK_config_s ABK_config_t;
 
 typedef enum {
     ABK_STATE_STANDBY = 0,
