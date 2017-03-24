@@ -39,6 +39,10 @@ Serial USBport(ISP_TXD, ISP_RXD);
 AT24CXX_I2C eeprom(I2C0_SDA, I2C0_SCL, 0x50);
 #endif
 
+Mutex ABK_config_mutex;
+ABK_config_t ABK_config;
+ABK_state_t ABK_state;
+
 #if !ABK_TEST
 Thread ABK_app_thread;
 Thread ABK_serial_thread;
@@ -73,12 +77,48 @@ int main(void) {
 #endif
 
 #if ABK_HAS_EEPROM
-    short data = 0;
-    USBport.printf("EEPROM TEST\r\n");
-    bool ew = eeprom.Write(0, (short)12);
-    bool er = eeprom.Read(0, &data);
+    ABK_config_mutex.lock();
 
-    USBport.printf("EEPROM W %d R %d D %d\r\n", ew, er, data);
+    // get_eeprom data
+    if (ABK_eeprom_read_config(&eeprom, &ABK_config)) { // get_eeprom data success
+        ABK_state = ABK_STATE_CONFIGURED;
+        printf("Configured:\r\n");
+        printf("state %d\r\n", ABK_config.state);
+        printf("start %dms\r\n", ABK_config.start_time);
+        printf("point1 %dms @%d\r\n", ABK_config.p1.time, ABK_config.p1.speed);
+        printf("point2 %dms @%d\r\n", ABK_config.p2.time, ABK_config.p2.speed);
+        printf("stop %dms\r\n", ABK_config.stop_time);
+        if (ABK_config.state == 1) {
+            if (ABK_validate_config(&ABK_config)) {
+                ABK_state = ABK_STATE_RUN;
+            } else {
+                ABK_state = ABK_STATE_NOT_CONFIGURED;
+            }
+        } else if (ABK_config.state == 0 || ABK_config.state == 255) {
+            USBport.printf("Erasing!\r\n");
+            ABK_eeprom_erase_config(&eeprom);
+        }
+    } else {
+        ABK_state = ABK_STATE_NOT_CONFIGURED;
+        printf("Not ABK_configured\r\n");
+#if ABK_SIMULATE
+        ABK_config.state = 1;
+        ABK_config.start_time = 1000;
+        ABK_config.p1.time = 2500;
+        ABK_config.p1.speed = 80;
+        ABK_config.p2.time = 5000;
+        ABK_config.p2.speed = 100;
+        ABK_config.stop_time = 10000;
+        ABK_state = ABK_STATE_RUN;
+        printf("Forced ABK_config:\r\n");
+        printf("start %dms\r\n", ABK_config.start_time);
+        printf("point1 %dms @%d\r\n", ABK_config.p1.time, ABK_config.p1.speed);
+        printf("point2 %dms @%d\r\n", ABK_config.p2.time, ABK_config.p2.speed);
+        printf("stop %dms\r\n", ABK_config.stop_time);
+#endif
+    }
+
+    ABK_config_mutex.unlock();
 #endif
 
 #if ABK_TEST
@@ -143,50 +183,20 @@ static void ABK_leds_task(void) {
 }
 
 static void ABK_app_task(void) {
-    ABK_state_t state = ABK_STATE_STANDBY;
-    ABK_config_t config;
-
     bool _triggered = false;
-    uint32_t _trigger_time = 0U;
-    uint16_t _stime = 0U;
+    int _trigger_time = 0U;
+    int _stime = 0U;
+    ABK_config_t _config;
 
-    // get_eeprom data
-    if (ABK_eeprom_read_config(&eeprom, &config)) { // get_eeprom data success
-        state = ABK_STATE_CONFIGURED;
-        printf("Configured:\r\n");
-        printf("state %dms\r\n", config.state);
-        printf("start %dms\r\n", config.start_time);
-        printf("point1 %dms @%d\r\n", config.p1.time, config.p1.speed);
-        printf("point2 %dms @%d\r\n", config.p2.time, config.p2.speed);
-        printf("stop %dms\r\n", config.stop_time);
-        if (config.state == 1) {
-            state = ABK_STATE_RUN;
-        } else if (config.state == 32) {
-            USBport.printf("Erasing!\r\n");
-            ABK_eeprom_erase_config(&eeprom);
-        }
-    } else {
-        state = ABK_STATE_NOT_CONFIGURED;
-        printf("Not configured\r\n");
-#if ABK_SIMULATE
-        config.state = 1;
-        config.start_time = 1000;
-        config.p1.time = 2500;
-        config.p1.speed = 80;
-        config.p2.time = 5000;
-        config.p2.speed = 100;
-        config.stop_time = 10000;
-        state = ABK_STATE_RUN;
-        printf("Forced config:\r\n");
-        printf("start %dms\r\n", config.start_time);
-        printf("point1 %dms @%d\r\n", config.p1.time, config.p1.speed);
-        printf("point2 %dms @%d\r\n", config.p2.time, config.p2.speed);
-        printf("stop %dms\r\n", config.stop_time);
-#endif
+    if (ABK_state == ABK_STATE_CONFIGURED) {
+        ABK_config_mutex.lock();
+        memcpy(&_config, &ABK_config, sizeof(ABK_config_t));
+        USBport.printf("Config copied.\r\n");
+        ABK_config_mutex.unlock();
     }
 
-    while (state != ABK_STATE_RESET) {
-        if (state == ABK_STATE_RUN) {
+    while (ABK_state != ABK_STATE_RESET) {
+        if (ABK_state == ABK_STATE_RUN) {
             if (!_triggered && ac_trigger != 0) {
                 _triggered = true;
                 _trigger_time = ABK_timer.read_ms();
@@ -198,31 +208,31 @@ static void ABK_app_task(void) {
                 led1 = !led1;
                 USBport.printf("stime: %d ", _stime);
 
-                if (_stime >= config.start_time && _stime < config.p1.time) {
+                if (_stime >= _config.start_time && _stime < _config.p1.time) {
                     ABK_set_drum_mode(ABK_DRUM_ENGAGED);
 
-                    float rspeed = ABK_map(config.start_time, config.p1.time,
-                           0, config.p1.speed, _stime);
+                    float rspeed = ABK_map(_config.start_time, _config.p1.time,
+                           0, _config.p1.speed, _stime);
                     ABK_set_speed(rspeed);
                     USBport.printf("T1 %f", rspeed);
                 }
-                else if (_stime >= config.p1.time && _stime < config.p2.time) {
+                else if (_stime >= _config.p1.time && _stime < _config.p2.time) {
                     ABK_set_drum_mode(ABK_DRUM_BRAKED);
 
-                    float rspeed = ABK_map(config.p1.time, config.p2.time,
-                            config.p1.speed, config.p2.speed, _stime);
+                    float rspeed = ABK_map(_config.p1.time, _config.p2.time,
+                            _config.p1.speed, _config.p2.speed, _stime);
                     ABK_set_speed(rspeed);
                     USBport.printf("T2 %f", rspeed);
                 }
-                else if (_stime >= config.p2.time && _stime < config.stop_time) {
+                else if (_stime >= _config.p2.time && _stime < _config.stop_time) {
                     ABK_set_drum_mode(ABK_DRUM_BRAKED);
 
-                    float rspeed = ABK_map(config.p2.time, config.stop_time,
-                            config.p2.speed, 0, _stime);
+                    float rspeed = ABK_map(_config.p2.time, _config.stop_time,
+                            _config.p2.speed, 0, _stime);
                     ABK_set_speed(rspeed);
                     USBport.printf("T3 %f", rspeed);
                 }
-                else if (_stime >= config.stop_time) {
+                else if (_stime >= _config.stop_time) {
                     ABK_set_speed(0);
                     ABK_set_drum_mode(ABK_DRUM_FULLSTOP);
                     USBport.printf("S");
