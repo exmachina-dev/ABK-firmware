@@ -138,20 +138,20 @@ int main(void) {
     }
     for (int i=0; i<100; i++) {
         motor_ctl = (float) i / 100.0;
-        Thread::wait(100);
+        Thread::wait(50);
 
         wdog.kick();
     }
     for (int i=100; i>0; i--) {
         motor_ctl = (float) i / 100.0;
-        Thread::wait(100);
+        Thread::wait(50);
 
         wdog.kick();
     }
 
     short test_data = 0;
-    bool test_ew = eeprom.Write(0, (short)12);
-    bool test_er = eeprom.Read(0, &test_data);
+    bool test_ew = eeprom.write(0, (short)12);
+    bool test_er = eeprom.read(0, &test_data);
 
     if (test_ew && test_er) {
         led1 = 1;

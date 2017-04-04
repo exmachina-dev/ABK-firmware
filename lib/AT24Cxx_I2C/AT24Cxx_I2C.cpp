@@ -137,15 +137,11 @@ namespace _AT24CXX_I2C {
             short baddress = address + b;
             short blength = (length - b) < AT24C_PAGE_SIZE ? length - b : AT24C_PAGE_SIZE;
             char i2cBuffer[blength + 1];
-            printf("write b %d baddress %d blength %d\r\n", b, baddress, blength);
 
             i2cBuffer[0] = (unsigned char)((unsigned char)baddress & 0xff);
-            printf("write at %d:", i2cBuffer[0]);
             for (short i=0; i<blength; i++) {
                 i2cBuffer[i + 1] = p_datas[b + i];
-                printf(" %d", i2cBuffer[i + 1]);
             }
-            printf("\r\n");
 
             result += _i2c_instance->write(_slaveAddress, i2cBuffer, blength + 1);
             wait_ms(5);
@@ -249,7 +245,6 @@ namespace _AT24CXX_I2C {
             char baddress = address + b;
             char blength = (length - b) < AT24C_PAGE_SIZE ? length - b : AT24C_PAGE_SIZE;
             char i2cBuffer[1];
-            printf("read baddress %d blength %d\r\n", baddress, blength);
 
             i2cBuffer[0] = (unsigned char)((unsigned char)baddress & 0xff);
 
@@ -261,18 +256,9 @@ namespace _AT24CXX_I2C {
 
                 if (result == 0) {
                     memcpy(p_datas + b, &buffer, blength);
-
-                    printf("read");
-                    for (int i=0; i<blength; i++)
-                        printf(" %d", p_datas[b + i]);
-                    printf("\r\n");
                 }
             }
         }
-        printf("retn");
-        for (int i=0; i<length; i++)
-            printf(" %d", p_datas[i]);
-        printf(":%d \r\n", result);
 
         return (bool)(result == 0);
 
