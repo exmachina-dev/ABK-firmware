@@ -42,6 +42,7 @@ AT24CXX_I2C eeprom(I2C0_SDA, I2C0_SCL, 0x50);
 Mutex ABK_config_mutex;
 ABK_config_t ABK_config;
 ABK_state_t ABK_state;
+bool ABK_reset = false;
 
 #if !ABK_TEST
 Thread ABK_app_thread;
@@ -169,6 +170,8 @@ int main(void) {
     ABK_app_thread.start(ABK_app_task);
     ABK_serial_thread.start(ABK_serial_task);
 
+    wdog.kick(1); // Set watchdog to 1s
+
     while(true) {
         led1 = !led1;
         wdog.kick();
@@ -179,6 +182,11 @@ int main(void) {
             USBport.printf("Simulated trigger");
         }
 #endif
+
+        if (ABK_reset == true) {
+            mbed_reset();
+            break;
+        }
 
         Thread::wait(100);
     }
@@ -269,17 +277,79 @@ static void ABK_app_task(void) {
 }
 
 static void ABK_serial_task(void) {
-    char c;
+    unsigned int res = 0;
+    char cmd_buf[10];
+    std::string line="";
+    std::string cmd;
+
     while (true) {
-        if (USBport.readable()) {
+        char c;
+        float args[4];
+        if (USBport.readable() > 0) {
             c = USBport.getc();
-            if (c == '\n' || c == '\r') {
-                USBport.putc('\r');
-                USBport.putc('\n');
-            } else
-                USBport.putc(c);
+            USBport.putc(c);
+            if (c == '\r' || c == '\n') {
+                if (c == '\r')
+                    USBport.putc('\n');
+
+                res = sscanf(line.c_str(), "%s", cmd_buf);
+
+                if (res > 0) {
+                    cmd = cmd_buf;
+
+                    if (cmd == "help") {
+                        USBport.printf("Help !");
+                    } else if (cmd == "set") {
+                        char opt_str[10];
+                        int nargs = sscanf(line.c_str(), "%s %s %f %f %f %f", cmd_buf, opt_str, &args[0], &args[1], &args[2], &args[3]);
+                        if (nargs > 2) {
+                            USBport.printf("Set %s to  %f !", opt_str, args[0]);
+
+                            ABK_config_mutex.lock();
+
+                            if (strcmp(opt_str, "start") == 0) {
+                                ABK_config.start_time = (uint16_t) args[0];
+                            } else if (strcmp(opt_str, "p1.time") == 0) {
+                                ABK_config.p1.time = (uint16_t) args[0];
+                            } else if (strcmp(opt_str, "p1.speed") == 0) {
+                                ABK_config.p1.speed = (uint16_t) args[0];
+                            } else if (strcmp(opt_str, "p2.time") == 0) {
+                                ABK_config.p2.time = (uint16_t) args[0];
+                            } else if (strcmp(opt_str, "p2.speed") == 0) {
+                                ABK_config.p2.speed = (uint16_t) args[0];
+                            } else if (strcmp(opt_str, "stop") == 0) {
+                                ABK_config.stop_time = (uint16_t) args[0];
+                            } else {
+                                USBport.printf("Unrecognized option: %s.", opt_str);
+                            }
+
+                            ABK_config_mutex.unlock();
+                        }
+                    } else if (cmd == "save") {
+                        ABK_config_mutex.lock();
+
+                        if (ABK_eeprom_write_config(&eeprom, &ABK_config))
+                            USBport.printf("Config saved to EEPROM.\r\n");
+                        else
+                            USBport.printf("Error occured during writing to EEPROM.\r\n");
+
+
+                        ABK_config_mutex.unlock();
+                    } else if (cmd == "reset") {
+                        ABK_reset = true;
+                    } else {
+                        USBport.printf("Unrecognized command: %s. Type 'help' for help", cmd_buf);
+                    }
+                    USBport.printf("\r\n");
+                }
+
+                line = ""; // Empty buffer
+            } else {
+                line += c;
+            }
         }
 
-        Thread::wait(100);
+
+        Thread::wait(50);
     }
 }
