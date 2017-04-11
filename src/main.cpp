@@ -298,12 +298,27 @@ static void ABK_serial_task(void) {
                     cmd = cmd_buf;
 
                     if (cmd == "help") {
-                        USBport.printf("Help !");
+                        USBport.printf("Abrakabuki by ExMachina\r\n");
+                        USBport.printf("    version: %s\r\n\r\n", ABK_VERSION);
+                        USBport.printf("available commands:\r\n");
+                        USBport.printf("    set OPTION VALUE     Set the option to the desired value.\r\n");
+                        USBport.printf("                         Integer and float are accepted.\r\n");
+                        USBport.printf("         start DELAY     Delay from trigger to start.\r\n");
+                        USBport.printf("         p1.time DELAY   Delay from trigger to point 1.\r\n");
+                        USBport.printf("         p1.speed DELAY  Speed at point 1.\r\n");
+                        USBport.printf("         p2.time DELAY   Delay from trigger to point 2.\r\n");
+                        USBport.printf("         p2.speed DELAY  Speed at point 2.\r\n");
+                        USBport.printf("         stop DELAY      Delay from trigger to full stop.\r\n");
+                        USBport.printf("\r\n");
+                        USBport.printf("    get                  Return current configuration\r\n");
+                        USBport.printf("    save                 Save configuration to eeprom\r\n");
+                        USBport.printf("    reset                Reset the microcontroller\r\n");
+                        USBport.printf("    help                 Display this help message\r\n");
                     } else if (cmd == "set") {
                         char opt_str[10];
                         int nargs = sscanf(line.c_str(), "%s %s %f %f %f %f", cmd_buf, opt_str, &args[0], &args[1], &args[2], &args[3]);
                         if (nargs > 2) {
-                            USBport.printf("Set %s to  %f !", opt_str, args[0]);
+                            USBport.printf("%s set to %.2f\r\n", opt_str, args[0]);
 
                             ABK_config_mutex.lock();
 
@@ -325,20 +340,33 @@ static void ABK_serial_task(void) {
 
                             ABK_config_mutex.unlock();
                         }
+                    } else if (cmd == "get") {
+                        ABK_config_mutex.lock();
+
+                        USBport.printf("start %d\r\n", ABK_config.start_time);
+                        USBport.printf("p1.time %d\r\np1.speed %d\r\n", ABK_config.p1.time, ABK_config.p1.speed);
+                        USBport.printf("p2.time %d\r\np2.speed %d\r\n", ABK_config.p2.time, ABK_config.p2.speed);
+                        USBport.printf("stop %d\r\n", ABK_config.stop_time);
+
+                        ABK_config_mutex.unlock();
                     } else if (cmd == "save") {
                         ABK_config_mutex.lock();
 
+                        ABK_config.state = 1;
+
                         if (ABK_eeprom_write_config(&eeprom, &ABK_config))
-                            USBport.printf("Config saved to EEPROM.\r\n");
+                            USBport.printf("config saved to EEPROM.");
                         else
-                            USBport.printf("Error occured during writing to EEPROM.\r\n");
+                            USBport.printf("error occured during writing to EEPROM.");
 
 
                         ABK_config_mutex.unlock();
                     } else if (cmd == "reset") {
                         ABK_reset = true;
+                    } else if (cmd == "version") {
+                        USBport.printf("%s", ABK_VERSION);
                     } else {
-                        USBport.printf("Unrecognized command: %s. Type 'help' for help", cmd_buf);
+                        USBport.printf("unrecognized command: %s. Type 'help' for help", cmd_buf);
                     }
                     USBport.printf("\r\n");
                 }
