@@ -84,8 +84,8 @@ DigitalOut led5(LED_HMI3);
 DigitalOut led6(LED_HMI4);
 
 // Inputs
-DigitalIn drive_status1(DRV_STS1);
-DigitalIn drive_status2(DRV_STS2);
+DigitalIn drive_status(DRV_STS1);
+DigitalIn slowfeed_input(DRV_STS2);
 #if ABK_SIMULATE
 bool ac_trigger;
 #else
