@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>506</width>
-    <height>869</height>
+    <width>511</width>
+    <height>729</height>
    </rect>
   </property>
   <property name="palette">
@@ -142,9 +142,9 @@
              <item>
               <widget class="QGraphicsView" name="timePreview">
                <property name="sizePolicy">
-                <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
+                <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
+                 <horstretch>1</horstretch>
+                 <verstretch>1</verstretch>
                 </sizepolicy>
                </property>
                <property name="minimumSize">
@@ -184,7 +184,7 @@
                 </brush>
                </property>
                <property name="interactive">
-                <bool>false</bool>
+                <bool>true</bool>
                </property>
                <property name="sceneRect">
                 <rectf>
@@ -202,6 +202,9 @@
                </property>
                <property name="dragMode">
                 <enum>QGraphicsView::NoDrag</enum>
+               </property>
+               <property name="resizeAnchor">
+                <enum>QGraphicsView::AnchorViewCenter</enum>
                </property>
               </widget>
              </item>
@@ -235,28 +238,6 @@
                   </property>
                  </widget>
                 </item>
-                <item row="0" column="1">
-                 <widget class="QDoubleSpinBox" name="x1DoubleSpinBox">
-                  <property name="prefix">
-                   <string/>
-                  </property>
-                  <property name="suffix">
-                   <string extracomment="seconds"> s</string>
-                  </property>
-                  <property name="minimum">
-                   <double>0.000000000000000</double>
-                  </property>
-                  <property name="maximum">
-                   <double>120.000000000000000</double>
-                  </property>
-                  <property name="singleStep">
-                   <double>0.100000000000000</double>
-                  </property>
-                  <property name="value">
-                   <double>1.000000000000000</double>
-                  </property>
-                 </widget>
-                </item>
                 <item row="1" column="0">
                  <widget class="QLabel" name="x2Label">
                   <property name="text">
@@ -264,26 +245,50 @@
                   </property>
                  </widget>
                 </item>
-                <item row="1" column="1">
-                 <widget class="QDoubleSpinBox" name="x2DoubleSpinBox">
-                  <property name="suffix">
-                   <string> s</string>
-                  </property>
-                  <property name="maximum">
-                   <double>120.000000000000000</double>
-                  </property>
-                  <property name="singleStep">
-                   <double>0.100000000000000</double>
-                  </property>
-                  <property name="value">
-                   <double>2.000000000000000</double>
-                  </property>
-                 </widget>
-                </item>
                 <item row="2" column="0">
                  <widget class="QLabel" name="y2Label">
                   <property name="text">
                    <string>X speed</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="3" column="0">
+                 <widget class="QLabel" name="x3Label">
+                  <property name="text">
+                   <string>Y time</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="4" column="0">
+                 <widget class="QLabel" name="y3Label">
+                  <property name="text">
+                   <string>Y speed</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="1">
+                 <widget class="QSpinBox" name="x1SpinBox">
+                  <property name="suffix">
+                   <string extracomment="milliseconds"> ms</string>
+                  </property>
+                  <property name="maximum">
+                   <number>60000</number>
+                  </property>
+                  <property name="singleStep">
+                   <number>10</number>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="1">
+                 <widget class="QSpinBox" name="x2SpinBox">
+                  <property name="suffix">
+                   <string extracomment="milliseconds"> ms</string>
+                  </property>
+                  <property name="maximum">
+                   <number>100000</number>
+                  </property>
+                  <property name="singleStep">
+                   <number>10</number>
                   </property>
                  </widget>
                 </item>
@@ -303,33 +308,19 @@
                   </property>
                  </widget>
                 </item>
-                <item row="3" column="0">
-                 <widget class="QLabel" name="x3Label">
-                  <property name="text">
-                   <string>Y time</string>
-                  </property>
-                 </widget>
-                </item>
                 <item row="3" column="1">
-                 <widget class="QDoubleSpinBox" name="x3DoubleSpinBox">
+                 <widget class="QSpinBox" name="x3SpinBox">
+                  <property name="cursor">
+                   <cursorShape>ArrowCursor</cursorShape>
+                  </property>
                   <property name="suffix">
-                   <string> s</string>
+                   <string extracomment="milliseconds"> ms</string>
                   </property>
                   <property name="maximum">
-                   <double>120.000000000000000</double>
+                   <number>100000</number>
                   </property>
                   <property name="singleStep">
-                   <double>0.100000000000000</double>
-                  </property>
-                  <property name="value">
-                   <double>3.000000000000000</double>
-                  </property>
-                 </widget>
-                </item>
-                <item row="4" column="0">
-                 <widget class="QLabel" name="y3Label">
-                  <property name="text">
-                   <string>Y speed</string>
+                   <number>10</number>
                   </property>
                  </widget>
                 </item>
@@ -357,24 +348,28 @@
                  </widget>
                 </item>
                 <item row="5" column="1">
-                 <widget class="QDoubleSpinBox" name="x4DoubleSpinBox">
+                 <widget class="QSpinBox" name="x4SpinBox">
                   <property name="suffix">
-                   <string> s</string>
+                   <string extracomment="milliseconds"> ms</string>
                   </property>
                   <property name="maximum">
-                   <double>120.000000000000000</double>
+                   <number>100000</number>
                   </property>
                   <property name="singleStep">
-                   <double>0.100000000000000</double>
-                  </property>
-                  <property name="value">
-                   <double>4.000000000000000</double>
+                   <number>10</number>
                   </property>
                  </widget>
                 </item>
                </layout>
               </item>
              </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="getConfigButton">
+             <property name="text">
+              <string>Get configuration from device</string>
+             </property>
             </widget>
            </item>
            <item>
@@ -385,9 +380,9 @@
             </widget>
            </item>
            <item>
-            <widget class="QPushButton" name="getConfigButton">
+            <widget class="QPushButton" name="resetButton">
              <property name="text">
-              <string>Get configuration from device</string>
+              <string>Reset device</string>
              </property>
             </widget>
            </item>
@@ -405,7 +400,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>506</width>
+     <width>511</width>
      <height>21</height>
     </rect>
    </property>
