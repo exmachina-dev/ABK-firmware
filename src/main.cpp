@@ -206,6 +206,7 @@ static void ABK_leds_task(void) {
 
 static void ABK_app_task(void) {
     bool _triggered = false;
+    bool _force_drum_stop = false;
     int _trigger_time = 0U;
     int _stime = 0U;
     ABK_config_t _config;
@@ -215,23 +216,50 @@ static void ABK_app_task(void) {
         memcpy(&_config, &ABK_config, sizeof(ABK_config_t));
         USBport.printf("Config copied.\r\n");
         ABK_config_mutex.unlock();
+
+        printf("start %dms\r\n", _config.start_time);
+        printf("point1 %dms @%d\r\n", _config.p1.time, _config.p1.speed);
+        printf("point2 %dms @%d\r\n", _config.p2.time, _config.p2.speed);
+        printf("stop %dms\r\n", _config.stop_time);
+
+        ABK_state = ABK_STATE_RUN;
     }
 
     while (ABK_state != ABK_STATE_RESET) {
         if (ABK_state == ABK_STATE_RUN) {
             if (!_triggered && ac_trigger != 0) {
                 _triggered = true;
-                _trigger_time = ABK_timer.read_ms();
-                ABK_timer.reset();
+                _trigger_time = ABK_timer.read_ms();    // Store and reset timer: This ensure the timer
+                ABK_timer.reset();                      // doesn't overflow after the ABK been trigered (undefined behaviour)
             }
+
+            if (emergency_stop != 1) { // Stop motor on emergency input
+                ABK_set_drum_mode(ABK_DRUM_FULLSTOP);
+                ABK_set_speed(0.0);
+                ABK_set_motor_mode(ABK_MOTOR_DISABLED);
+                continue;
+            }
+
+            if (slowfeed_input == 1) { // Overrides default behavior for loading/unloading
+                ABK_set_drum_mode(ABK_DRUM_FREEWHEEL);
+                ABK_set_motor_mode(ABK_MOTOR_RW);
+                ABK_set_speed(0.01);
+                continue;
+            }
+
+            _force_drum_stop = (drum_limit == 1) ? true : false;
 
             if (_triggered) {
                 _stime = ABK_timer.read_ms(); // Update time since trigger
-                led1 = !led1;
+                led2 = !led2;
                 USBport.printf("stime: %d ", _stime);
 
                 if (_stime >= _config.start_time && _stime < _config.p1.time) {
-                    ABK_set_drum_mode(ABK_DRUM_ENGAGED);
+                    if (!_force_drum_stop)
+                        ABK_set_drum_mode(ABK_DRUM_ENGAGED);
+                    else
+                        ABK_set_drum_mode(ABK_DRUM_BRAKED);
+                    ABK_set_motor_mode(ABK_MOTOR_FW);
 
                     float rspeed = ABK_map(_config.start_time, _config.p1.time,
                            0, _config.p1.speed, _stime);
@@ -240,6 +268,7 @@ static void ABK_app_task(void) {
                 }
                 else if (_stime >= _config.p1.time && _stime < _config.p2.time) {
                     ABK_set_drum_mode(ABK_DRUM_BRAKED);
+                    ABK_set_motor_mode(ABK_MOTOR_FW);
 
                     float rspeed = ABK_map(_config.p1.time, _config.p2.time,
                             _config.p1.speed, _config.p2.speed, _stime);
@@ -248,6 +277,7 @@ static void ABK_app_task(void) {
                 }
                 else if (_stime >= _config.p2.time && _stime < _config.stop_time) {
                     ABK_set_drum_mode(ABK_DRUM_BRAKED);
+                    ABK_set_motor_mode(ABK_MOTOR_FW);
 
                     float rspeed = ABK_map(_config.p2.time, _config.stop_time,
                             _config.p2.speed, 0, _stime);
@@ -257,10 +287,13 @@ static void ABK_app_task(void) {
                 else if (_stime >= _config.stop_time) {
                     ABK_set_speed(0);
                     ABK_set_drum_mode(ABK_DRUM_FULLSTOP);
+                    ABK_set_motor_mode(ABK_MOTOR_DISABLED);
                     USBport.printf("S");
+                    ABK_state = ABK_STATE_STANDBY;
                 } else {
                     ABK_set_speed(0);
                     ABK_set_drum_mode(ABK_DRUM_FULLSTOP);
+                    ABK_set_motor_mode(ABK_MOTOR_DISABLED);
                     USBport.printf("U");
                 }
                 USBport.printf("\r\n");
