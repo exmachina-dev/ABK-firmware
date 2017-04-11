@@ -11,7 +11,7 @@
 #define ABK_VERSION         "v0.1"
 #define ABK_HAS_LCD         0
 #define ABK_HAS_EEPROM      1
-#define ABK_HAS_USBSERIAL   1
+#define ABK_HAS_USBSERIAL   0
 
 #define ABK_SIMULATE        1
 #define ABK_TEST            0
