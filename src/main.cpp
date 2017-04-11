@@ -91,7 +91,8 @@ int main(void) {
         printf("stop %dms\r\n", ABK_config.stop_time);
         if (ABK_config.state == 1) {
             if (ABK_validate_config(&ABK_config)) {
-                ABK_state = ABK_STATE_RUN;
+                ABK_state = ABK_STATE_CONFIGURED;
+                printf("Valid config\r\n");
             } else {
                 ABK_state = ABK_STATE_NOT_CONFIGURED;
             }
@@ -123,7 +124,7 @@ int main(void) {
 #endif
 
 #if ABK_TEST
-    for (int i=0; i<100; i++) {
+    for (int i=0; i<50; i++) {
         led1 = !led1;
         led2 = !led2;
 
@@ -177,7 +178,7 @@ int main(void) {
         wdog.kick();
 
 #if ABK_SIMULATE
-        if (!ac_trigger && ABK_timer1ms > 2000) {
+        if (!ac_trigger && ABK_timer.read_ms() > 5000) {
             ac_trigger = 1;
             USBport.printf("Simulated trigger");
         }
