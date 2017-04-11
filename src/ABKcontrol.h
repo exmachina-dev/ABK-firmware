@@ -12,7 +12,7 @@
 
 #include "AT24Cxx_I2C.h"
 
-#define ABK_MOT_MIN_DT      (50)
+#define ABK_MOT_MIN_DT      (10)
 #define ABK_MOT_MAX_DT      (80)
 
 #define ABK_EEPROM_VERSION          (2)
@@ -74,7 +74,14 @@ typedef enum {
     ABK_DRUM_FULLSTOP
 } ABK_drum_mode_t;
 
+typedef enum {
+    ABK_MOTOR_DISABLED = 0,
+    ABK_MOTOR_FW,
+    ABK_MOTOR_RW
+} ABK_motor_mode_t;
+
 void ABK_set_drum_mode(ABK_drum_mode_t);
+void ABK_set_motor_mode(ABK_motor_mode_t);
 int ABK_set_speed(float speed);
 
 float ABK_map(int from_val1, int from_val2, int to_val1, int to_val2, int value);

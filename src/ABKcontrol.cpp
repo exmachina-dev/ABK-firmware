@@ -29,6 +29,24 @@ void ABK_set_drum_mode(ABK_drum_mode_t mode) {
     }
 }
 
+
+void ABK_set_motor_mode(ABK_motor_mode_t mode) {
+    switch(mode) {
+        case ABK_MOTOR_FW:
+            dir_fw = 1;
+            dir_rw = 0;
+            break;
+        case ABK_MOTOR_RW:
+            dir_fw = 0;
+            dir_rw = 1;
+            break;
+        case ABK_MOTOR_DISABLED:
+            dir_fw = 0;
+            dir_rw = 0;
+            break;
+    }
+}
+
 int ABK_set_speed(float speed) {
     float dt = 0.0;
 
