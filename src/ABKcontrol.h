@@ -18,9 +18,9 @@
 #define ABK_EEPROM_VERSION          (2)
 #define ABK_EEPROM_STATE_BLANK      (0)
 #define ABK_EEPROM_STATE_PRESENT    (1)
-#define ABK_EEPROM_CONF_SIZE        (16)
+#define ABK_EEPROM_CONF_SIZE        (13)
 #define ABK_EEPROM_DATA_SIZE        (ABK_EEPROM_CONF_SIZE + 2)
-#define ABK_EEPROM_START_ADDRESS    (0)
+#define ABK_EEPROM_START_ADDRESS    (1)
 
 extern DigitalOut brake;
 extern DigitalOut clutch;
@@ -54,7 +54,6 @@ struct ABK_config_s {
     ABK_point_t p1;
     ABK_point_t p2;
     uint16_t stop_time;
-    uint8_t unused;
 } __attribute__((packed));
 
 typedef struct ABK_config_s ABK_config_t;
