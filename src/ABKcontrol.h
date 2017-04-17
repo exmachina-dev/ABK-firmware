@@ -12,8 +12,8 @@
 
 #include "AT24Cxx_I2C.h"
 
-#define ABK_MOT_MIN_DT      (10)
-#define ABK_MOT_MAX_DT      (80)
+#define ABK_MOT_MIN_FREQ            (2350)
+#define ABK_MOT_MAX_FREQ            (12000)
 
 #define ABK_EEPROM_VERSION          (2)
 #define ABK_EEPROM_STATE_BLANK      (0)

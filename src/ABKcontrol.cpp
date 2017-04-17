@@ -48,16 +48,17 @@ void ABK_set_motor_mode(ABK_motor_mode_t mode) {
 }
 
 int ABK_set_speed(float speed) {
-    float dt = 0.0;
+    float dt = 0.5;
+    int period = 0;
 
-    dt = ABK_map(0, 100, ABK_MOT_MIN_DT, ABK_MOT_MAX_DT, speed);
-    dt = dt / 100;
+    period = (int) (1000000.0 / ABK_map(0, 100, ABK_MOT_MIN_FREQ, ABK_MOT_MAX_FREQ, speed));
 
-    if (dt > 1.0)
-        dt = 1.0;
-    else if (dt < 0.0)
-        dt = 0;
+    if (period > (1000000 / ABK_MOT_MIN_FREQ))
+        period = 500;
+    else if (period < (1000000 / ABK_MOT_MAX_FREQ))
+        period = 45;
 
+    motor_ctl.period_us(period);
     motor_ctl = dt;
     return 0;
 }
