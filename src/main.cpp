@@ -256,7 +256,7 @@ static void ABK_app_task(void) {
         Thread::wait(ABK_INTERVAL);
 
         if (ABK_state == ABK_STATE_RUN) {
-            if (!_triggered && ac_trigger != 0) {
+            if (!_triggered && ac_trigger == 0) {
                 _triggered = true;
                 _trigger_time = ABK_timer.read_ms();    // Store and reset timer: This ensure the timer
                 ABK_timer.reset();                      // doesn't overflow after the ABK been trigered (undefined behaviour)
