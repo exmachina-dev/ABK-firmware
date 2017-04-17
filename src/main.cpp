@@ -165,6 +165,31 @@ int main(void) {
         dir_rw = 1;
     }
 
+#elif ABK_MOTOR_TEST
+    for (int i=0; i<100; i++) {
+        clutch = 0;
+        brake = 0;
+        ABK_set_speed(i);
+        dir_fw = 1;
+        dir_rw = 0;
+        Thread::wait(200);
+
+        wdog.kick();
+    }
+
+    for (int i=100; i>0; i--) {
+        clutch = 0;
+        brake = 0;
+        ABK_set_speed(i);
+        dir_fw = 1;
+        dir_rw = 0;
+        Thread::wait(200);
+
+        wdog.kick();
+    }
+
+    dir_fw = 0;
+    dir_rw = 0;
 #else
 
     ABK_timer.start();
