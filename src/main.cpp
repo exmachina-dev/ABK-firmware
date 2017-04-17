@@ -253,6 +253,8 @@ static void ABK_app_task(void) {
     }
 
     while (ABK_state != ABK_STATE_RESET) {
+        Thread::wait(ABK_INTERVAL);
+
         if (ABK_state == ABK_STATE_RUN) {
             if (!_triggered && ac_trigger != 0) {
                 _triggered = true;
@@ -333,7 +335,6 @@ static void ABK_app_task(void) {
             ABK_set_speed(0);
             ABK_set_drum_mode(ABK_DRUM_FULLSTOP);
         }
-        Thread::wait(ABK_INTERVAL);
     }
 }
 
