@@ -136,15 +136,24 @@ namespace _AT24CXX_I2C {
         for (short b=0; b<length; b+=AT24C_PAGE_SIZE) {
             short baddress = address + b;
             short blength = (length - b) < AT24C_PAGE_SIZE ? length - b : AT24C_PAGE_SIZE;
+#if AT24C_ADDRESS_SIZE == 1
             char i2cBuffer[blength + 1];
 
             i2cBuffer[0] = (unsigned char)((unsigned char)baddress & 0xff);
-            for (short i=0; i<blength; i++) {
+            for (short i=0; i<blength; i++)
                 i2cBuffer[i + 1] = p_datas[b + i];
-            }
 
             result += _i2c_instance->write(_slaveAddress, i2cBuffer, blength + 1);
-            wait_ms(5);
+#elif AT24C_ADDRESS_SIZE == 2
+            char i2cBuffer[blength + 2];
+
+            i2cBuffer[0] = (unsigned char)(baddress >> 8);
+            i2cBuffer[1] = (unsigned char)((unsigned char)baddress & 0xff);
+            for (short i=0; i<blength; i++)
+                i2cBuffer[i + 2] = p_datas[b + i];
+
+            result += _i2c_instance->write(_slaveAddress, i2cBuffer, blength + 2);
+#endif
         }
 
         return (bool)(result == 0);
@@ -177,7 +186,7 @@ namespace _AT24CXX_I2C {
         // 1.Prepare buffer
         char i2cBuffer[2];
         // 1.1. Memory address
-        i2cBuffer[0] = (unsigned char)(p_address >> 8);
+        i2cBuffer[0] = (unsigned char)((unsigned char)p_address >> 8);
         i2cBuffer[1] = (unsigned char)((unsigned char)p_address & 0xff);
 
         // 2. Send I2C start + memory address
@@ -242,14 +251,21 @@ namespace _AT24CXX_I2C {
 
         int result = 0;
         for (short b=0; b<length; b+=AT24C_PAGE_SIZE) {
-            char baddress = address + b;
+            short baddress = address + b;
             char blength = (length - b) < AT24C_PAGE_SIZE ? length - b : AT24C_PAGE_SIZE;
+#if AT24C_ADDRESS_SIZE == 1
             char i2cBuffer[1];
-
             i2cBuffer[0] = (unsigned char)((unsigned char)baddress & 0xff);
 
             if (_i2c_instance->write(_slaveAddress, i2cBuffer, 1, true) == 0) {
-                // 4. read data + I2C stop
+#elif AT24C_ADDRESS_SIZE == 2
+            char i2cBuffer[2];
+            i2cBuffer[0] = (unsigned char)((unsigned char)baddress >> 8);
+            i2cBuffer[1] = (unsigned char)((unsigned char)baddress & 0xff);
+
+            if (_i2c_instance->write(_slaveAddress, i2cBuffer, 2, true) == 0) {
+#endif
+
                 unsigned char buffer[blength];
 
                 result += _i2c_instance->read(_slaveAddress, (char *)buffer, blength);
