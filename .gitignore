@@ -2,3 +2,4 @@ BUILD/
 
 .ropeproject/
 __pycache__/
+*.pyc
