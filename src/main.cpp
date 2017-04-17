@@ -272,7 +272,14 @@ static void ABK_app_task(void) {
             if (slowfeed_input == 1) { // Overrides default behavior for loading/unloading
                 ABK_set_drum_mode(ABK_DRUM_FREEWHEEL);
                 ABK_set_motor_mode(ABK_MOTOR_RW);
-                ABK_set_speed(0.01);
+                ABK_set_speed(6);
+                _triggered = false;
+                ABK_timer.reset();                      // doesn't overflow after the ABK been trigered (undefined behaviour)
+                continue;
+            } else if (!_triggered && (slowfeed_input == 0)) {
+                ABK_set_drum_mode(ABK_DRUM_BRAKED);
+                ABK_set_motor_mode(ABK_MOTOR_DISABLED);
+                ABK_set_speed(0);
                 continue;
             }
 
