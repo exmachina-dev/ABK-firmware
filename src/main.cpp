@@ -56,8 +56,8 @@ int main(void) {
     mbed_mem_trace_set_callback(mbed_mem_trace_default_callback);
 #endif
 
-    motor_ctl.period_us(100);
-    motor_ctl = 0.0;
+    ABK_set_motor_mode(ABK_MOTOR_DISABLED);
+    ABK_set_speed(0);
 
     USBport.baud(115200);
 
