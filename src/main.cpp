@@ -255,7 +255,7 @@ static void ABK_app_task(void) {
     while (ABK_state != ABK_STATE_RESET) {
         Thread::wait(ABK_INTERVAL);
 
-        if (ABK_state == ABK_STATE_RUN) {
+        if (ABK_state == ABK_STATE_RUN && ABK_state == ABK_STATE_STANDBY) {
             if (!_triggered && ac_trigger == 0) {
                 _triggered = true;
                 _trigger_time = ABK_timer.read_ms();    // Store and reset timer: This ensure the timer
@@ -274,7 +274,7 @@ static void ABK_app_task(void) {
                 ABK_set_motor_mode(ABK_MOTOR_RW);
                 ABK_set_speed(6);
                 _triggered = false;
-                ABK_timer.reset();                      // doesn't overflow after the ABK been trigered (undefined behaviour)
+                ABK_timer.reset();
                 continue;
             } else if (!_triggered && (slowfeed_input == 0)) {
                 ABK_set_drum_mode(ABK_DRUM_BRAKED);
@@ -283,9 +283,10 @@ static void ABK_app_task(void) {
                 continue;
             }
 
+
             _force_drum_stop = (drum_limit == 1) ? true : false;
 
-            if (_triggered) {
+            if (ABK_state == ABK_STATE_RUN && _triggered) {
                 _stime = ABK_timer.read_ms(); // Update time since trigger
                 led2 = !led2;
                 USBport.printf("stime: %d ", _stime);
@@ -325,6 +326,7 @@ static void ABK_app_task(void) {
                     ABK_set_drum_mode(ABK_DRUM_FULLSTOP);
                     ABK_set_motor_mode(ABK_MOTOR_DISABLED);
                     USBport.printf("S");
+                    _triggered = false;
                     ABK_state = ABK_STATE_STANDBY;
                 } else {
                     ABK_set_speed(0);
