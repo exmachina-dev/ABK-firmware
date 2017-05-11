@@ -26,6 +26,9 @@
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
+  <property name="styleSheet">
+   <string notr="true"/>
+  </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QGridLayout" name="gridLayout_3">
     <property name="leftMargin">
@@ -133,19 +136,6 @@
            <item>
             <layout class="QHBoxLayout" name="horizontalLayout_2">
              <item>
-              <spacer name="horizontalSpacer_2">
-               <property name="orientation">
-                <enum>Qt::Horizontal</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>40</width>
-                 <height>20</height>
-                </size>
-               </property>
-              </spacer>
-             </item>
-             <item>
               <widget class="QGraphicsView" name="timePreview">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
@@ -161,6 +151,9 @@
                </property>
                <property name="layoutDirection">
                 <enum>Qt::LeftToRight</enum>
+               </property>
+               <property name="styleSheet">
+                <string notr="true"/>
                </property>
                <property name="lineWidth">
                 <number>2</number>
@@ -214,19 +207,6 @@
                </property>
               </widget>
              </item>
-             <item>
-              <spacer name="horizontalSpacer_3">
-               <property name="orientation">
-                <enum>Qt::Horizontal</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>40</width>
-                 <height>20</height>
-                </size>
-               </property>
-              </spacer>
-             </item>
             </layout>
            </item>
            <item>
@@ -239,6 +219,9 @@
                <layout class="QGridLayout" name="gridLayout_6">
                 <item row="0" column="1" colspan="3">
                  <widget class="QSpinBox" name="x1SpinBox">
+                  <property name="styleSheet">
+                   <string notr="true"/>
+                  </property>
                   <property name="suffix">
                    <string extracomment="milliseconds"> ms</string>
                   </property>
@@ -382,6 +365,9 @@
            </item>
            <item>
             <widget class="QPushButton" name="getConfigButton">
+             <property name="styleSheet">
+              <string notr="true"/>
+             </property>
              <property name="text">
               <string>Get configuration from device</string>
              </property>
