@@ -7,8 +7,14 @@
     <x>0</x>
     <y>0</y>
     <width>511</width>
-    <height>729</height>
+    <height>591</height>
    </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>500</width>
+    <height>100</height>
+   </size>
   </property>
   <property name="palette">
    <palette>
@@ -142,14 +148,14 @@
              <item>
               <widget class="QGraphicsView" name="timePreview">
                <property name="sizePolicy">
-                <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
+                <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                  <horstretch>1</horstretch>
                  <verstretch>1</verstretch>
                 </sizepolicy>
                </property>
                <property name="minimumSize">
                 <size>
-                 <width>482</width>
+                 <width>550</width>
                  <height>202</height>
                 </size>
                </property>
@@ -229,44 +235,9 @@
               <string>Points</string>
              </property>
              <layout class="QGridLayout" name="gridLayout_4">
-              <item row="0" column="0" colspan="2">
-               <layout class="QFormLayout" name="formLayout">
-                <item row="0" column="0">
-                 <widget class="QLabel" name="x1Label">
-                  <property name="text">
-                   <string>Start time</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="1" column="0">
-                 <widget class="QLabel" name="x2Label">
-                  <property name="text">
-                   <string>X time</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="2" column="0">
-                 <widget class="QLabel" name="y2Label">
-                  <property name="text">
-                   <string>X speed</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="3" column="0">
-                 <widget class="QLabel" name="x3Label">
-                  <property name="text">
-                   <string>Y time</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="4" column="0">
-                 <widget class="QLabel" name="y3Label">
-                  <property name="text">
-                   <string>Y speed</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="0" column="1">
+              <item row="0" column="0">
+               <layout class="QGridLayout" name="gridLayout_6">
+                <item row="0" column="1" colspan="3">
                  <widget class="QSpinBox" name="x1SpinBox">
                   <property name="suffix">
                    <string extracomment="milliseconds"> ms</string>
@@ -279,36 +250,116 @@
                   </property>
                  </widget>
                 </item>
+                <item row="0" column="0">
+                 <widget class="QLabel" name="x1Label">
+                  <property name="layoutDirection">
+                   <enum>Qt::LeftToRight</enum>
+                  </property>
+                  <property name="text">
+                   <string>Start time</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="0">
+                 <widget class="QLabel" name="x2Label">
+                  <property name="text">
+                   <string>X time</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                  </property>
+                 </widget>
+                </item>
                 <item row="1" column="1">
                  <widget class="QSpinBox" name="x2SpinBox">
                   <property name="suffix">
                    <string extracomment="milliseconds"> ms</string>
                   </property>
                   <property name="maximum">
-                   <number>100000</number>
+                   <number>60000</number>
                   </property>
                   <property name="singleStep">
                    <number>10</number>
                   </property>
                  </widget>
                 </item>
-                <item row="2" column="1">
-                 <widget class="QDoubleSpinBox" name="y2DoubleSpinBox">
-                  <property name="suffix">
-                   <string> %</string>
+                <item row="3" column="0">
+                 <widget class="QLabel" name="x4Label">
+                  <property name="text">
+                   <string>Stop time</string>
                   </property>
-                  <property name="maximum">
-                   <double>100.000000000000000</double>
-                  </property>
-                  <property name="singleStep">
-                   <double>0.500000000000000</double>
-                  </property>
-                  <property name="value">
-                   <double>0.000000000000000</double>
+                  <property name="alignment">
+                   <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                   </property>
                  </widget>
                 </item>
-                <item row="3" column="1">
+                <item row="3" column="1" colspan="3">
+                 <widget class="QSpinBox" name="x4SpinBox">
+                  <property name="suffix">
+                   <string extracomment="milliseconds"> ms</string>
+                  </property>
+                  <property name="maximum">
+                   <number>60000</number>
+                  </property>
+                  <property name="singleStep">
+                   <number>10</number>
+                  </property>
+                 </widget>
+                </item>
+                <item row="2" column="2">
+                 <widget class="QLabel" name="y3Label">
+                  <property name="text">
+                   <string>Y speed</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="2">
+                 <widget class="QLabel" name="y2Label">
+                  <property name="text">
+                   <string>X speed</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                  </property>
+                 </widget>
+                </item>
+                <item row="2" column="0">
+                 <widget class="QLabel" name="x3Label">
+                  <property name="text">
+                   <string>Y time</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="3">
+                 <widget class="QSpinBox" name="y2SpinBox">
+                  <property name="suffix">
+                   <string>%</string>
+                  </property>
+                  <property name="maximum">
+                   <number>100</number>
+                  </property>
+                 </widget>
+                </item>
+                <item row="2" column="3">
+                 <widget class="QSpinBox" name="y3SpinBox">
+                  <property name="suffix">
+                   <string>%</string>
+                  </property>
+                  <property name="maximum">
+                   <number>100</number>
+                  </property>
+                 </widget>
+                </item>
+                <item row="2" column="1">
                  <widget class="QSpinBox" name="x3SpinBox">
                   <property name="cursor">
                    <cursorShape>ArrowCursor</cursorShape>
@@ -317,43 +368,7 @@
                    <string extracomment="milliseconds"> ms</string>
                   </property>
                   <property name="maximum">
-                   <number>100000</number>
-                  </property>
-                  <property name="singleStep">
-                   <number>10</number>
-                  </property>
-                 </widget>
-                </item>
-                <item row="4" column="1">
-                 <widget class="QDoubleSpinBox" name="y3DoubleSpinBox">
-                  <property name="suffix">
-                   <string> %</string>
-                  </property>
-                  <property name="maximum">
-                   <double>100.000000000000000</double>
-                  </property>
-                  <property name="singleStep">
-                   <double>0.500000000000000</double>
-                  </property>
-                  <property name="value">
-                   <double>0.000000000000000</double>
-                  </property>
-                 </widget>
-                </item>
-                <item row="5" column="0">
-                 <widget class="QLabel" name="x4Label">
-                  <property name="text">
-                   <string>Stop time</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="5" column="1">
-                 <widget class="QSpinBox" name="x4SpinBox">
-                  <property name="suffix">
-                   <string extracomment="milliseconds"> ms</string>
-                  </property>
-                  <property name="maximum">
-                   <number>100000</number>
+                   <number>60000</number>
                   </property>
                   <property name="singleStep">
                    <number>10</number>
@@ -386,6 +401,16 @@
              </property>
             </widget>
            </item>
+           <item>
+            <widget class="QPushButton" name="eraseButton">
+             <property name="text">
+              <string>Erase device memory</string>
+             </property>
+             <property name="flat">
+              <bool>false</bool>
+             </property>
+            </widget>
+           </item>
           </layout>
          </item>
         </layout>
@@ -394,26 +419,6 @@
      </layout>
     </item>
    </layout>
-  </widget>
-  <widget class="QMenuBar" name="menuBar">
-   <property name="geometry">
-    <rect>
-     <x>0</x>
-     <y>0</y>
-     <width>511</width>
-     <height>21</height>
-    </rect>
-   </property>
-   <widget class="QMenu" name="fileMenu">
-    <property name="title">
-     <string>File</string>
-    </property>
-    <addaction name="actionLoad_from_file"/>
-    <addaction name="actionSave_to_file"/>
-    <addaction name="separator"/>
-    <addaction name="actionQuit"/>
-   </widget>
-   <addaction name="fileMenu"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <action name="actionQuit">
