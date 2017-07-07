@@ -287,7 +287,8 @@ static void ABK_app_task(void) {
             }
 
 
-            _force_drum_stop = (drum_limit == 1) ? true : false;
+            _force_drum_stop = (drum_limit == 0) ? true : false; // Sensors are NC
+                                                                 // When the fabric is detected, input is set to 0
 
             if (ABK_state == ABK_STATE_RUN && _triggered) {
                 _stime = ABK_timer.read_ms(); // Update time since trigger
