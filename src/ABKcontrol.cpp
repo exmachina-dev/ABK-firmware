@@ -145,6 +145,13 @@ bool ABK_eeprom_erase_config(AT24CXX_I2C *eeprom) {
     config.stop_time = 0;
 
     memcpy(&eedata.data.config, &config, ABK_EEPROM_CONF_SIZE);
+#if defined(ABK_DEBUG) && ABK_DEBUG != 0
+    DEBUG_PRINTF("T: ");
+    for (int i=0; i<ABK_EEPROM_CONF_SIZE; i++) {
+       DEBUG_PRINTF(" %d", eedata.data.config[i]);
+    }
+    DEBUG_PRINTF("\r\n");
+#endif
 
     ret = eeprom->write(ABK_EEPROM_START_ADDRESS, eedata.raw, ABK_EEPROM_DATA_SIZE);
 
