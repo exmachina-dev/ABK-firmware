@@ -13,7 +13,7 @@
 #define ABK_HAS_EEPROM      1
 #define ABK_HAS_USBSERIAL   0
 
-#define ABK_SIMULATE        1
+#define ABK_SIMULATE        0
 #define ABK_TEST            0
 #define ABK_MOTOR_TEST      0
 
