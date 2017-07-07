@@ -235,6 +235,7 @@ static void ABK_app_task(void) {
     bool _triggered = false;
     bool _force_drum_stop = false;
     int _trigger_time = 0U;
+    int _fabric_detected_time = 0U;
     int _stime = 0U;
     ABK_config_t _config;
 
@@ -255,8 +256,8 @@ static void ABK_app_task(void) {
     while (ABK_state != ABK_STATE_RESET) {
         Thread::wait(ABK_INTERVAL);
 
-        if (ABK_state == ABK_STATE_RUN && ABK_state == ABK_STATE_STANDBY) {
-            if (!_triggered && ac_trigger == 0) {
+        if (ABK_state == ABK_STATE_RUN || ABK_state == ABK_STATE_STANDBY) {
+            if (!_triggered && ac_trigger == 0 && drive_status == 1) {
                 _triggered = true;
                 _trigger_time = ABK_timer.read_ms();    // Store and reset timer: This ensure the timer
                 ABK_timer.reset();                      // doesn't overflow after the ABK been trigered (undefined behaviour)
@@ -291,9 +292,14 @@ static void ABK_app_task(void) {
                 led2 = !led2;
                 USBport.printf("stime: %d ", _stime);
 
+                if (_fabric_detected_time == 0 && drum_limit == 0)
+                    _fabric_detected_time = _stime;
+
                 if (_stime >= _config.start_time && _stime < _config.p1.time) {
                     if (!_force_drum_stop)
                         ABK_set_drum_mode(ABK_DRUM_ENGAGED);
+                    else if (_force_drum_stop && (_stime - _fabric_detected_time) <= ABK_CLUTCH_BRAKE_DELAY)
+                        ABK_set_drum_mode(ABK_DRUM_FREEWHEEL);
                     else
                         ABK_set_drum_mode(ABK_DRUM_BRAKED);
                     ABK_set_motor_mode(ABK_MOTOR_FW);
@@ -304,7 +310,12 @@ static void ABK_app_task(void) {
                     USBport.printf("T1 %f", rspeed);
                 }
                 else if (_stime >= _config.p1.time && _stime < _config.p2.time) {
-                    ABK_set_drum_mode(ABK_DRUM_BRAKED);
+                    if (!_force_drum_stop)
+                        ABK_set_drum_mode(ABK_DRUM_ENGAGED);
+                    else if (_force_drum_stop && (_stime - _fabric_detected_time) <= ABK_CLUTCH_BRAKE_DELAY)
+                        ABK_set_drum_mode(ABK_DRUM_FREEWHEEL);
+                    else
+                        ABK_set_drum_mode(ABK_DRUM_BRAKED);
                     ABK_set_motor_mode(ABK_MOTOR_FW);
 
                     float rspeed = ABK_map(_config.p1.time, _config.p2.time,
