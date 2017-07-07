@@ -1,3 +1,6 @@
 [submodule "mbed-os"]
 	path = mbed-os
 	url = git@git.exmachina.fr:mbed-os.git
+[submodule "lib/AT24Cxx_I2C"]
+	path = lib/AT24Cxx_I2C
+	url = git@git.exmachina.fr:/libAT24Cxx_I2C.git
