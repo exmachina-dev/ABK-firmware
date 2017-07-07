@@ -25,6 +25,12 @@
 #include "AT24Cxx_I2C.h"
 #endif
 
+#if defined(ABK_DEBUG) && (ABK_DEBUG != 0)
+#define DEBUG_PRINTF(...) (printf(__VA_ARGS__))
+#else
+#define DEBUG_PRINTF(...) (0)
+#endif
+
 static void ABK_leds_task(void);
 static void ABK_app_task(void);
 static void ABK_serial_task(void);

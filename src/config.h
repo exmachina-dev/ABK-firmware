@@ -16,6 +16,7 @@
 #define ABK_SIMULATE        0
 #define ABK_TEST            0
 #define ABK_MOTOR_TEST      0
+#define ABK_DEBUG           0
 
 #define ABK_INTERVAL        (10)
 

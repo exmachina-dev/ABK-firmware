@@ -115,11 +115,11 @@ int main(void) {
         ABK_config.p2.speed = 100;
         ABK_config.stop_time = 10000;
         ABK_state = ABK_STATE_RUN;
-        printf("Forced ABK_config:\r\n");
-        printf("start %dms\r\n", ABK_config.start_time);
-        printf("point1 %dms @%d\r\n", ABK_config.p1.time, ABK_config.p1.speed);
-        printf("point2 %dms @%d\r\n", ABK_config.p2.time, ABK_config.p2.speed);
-        printf("stop %dms\r\n", ABK_config.stop_time);
+        DEBUG_PRINTF("Forced ABK_config:\r\n");
+        DEBUG_PRINTF("start %dms\r\n", ABK_config.start_time);
+        DEBUG_PRINTF("point1 %dms @%d\r\n", ABK_config.p1.time, ABK_config.p1.speed);
+        DEBUG_PRINTF("point2 %dms @%d\r\n", ABK_config.p2.time, ABK_config.p2.speed);
+        DEBUG_PRINTF("stop %dms\r\n", ABK_config.stop_time);
 #endif
     }
 
@@ -262,6 +262,7 @@ static void ABK_app_task(void) {
                 _triggered = true;
                 _trigger_time = ABK_timer.read_ms();    // Store and reset timer: This ensure the timer
                 ABK_timer.reset();                      // doesn't overflow after the ABK been trigered (undefined behaviour)
+                printf("status trigger\r\n");
             }
 
             if (emergency_stop != 1) { // Stop motor on emergency input
@@ -291,7 +292,7 @@ static void ABK_app_task(void) {
             if (ABK_state == ABK_STATE_RUN && _triggered) {
                 _stime = ABK_timer.read_ms(); // Update time since trigger
                 led2 = !led2;
-                USBport.printf("stime: %d ", _stime);
+                DEBUG_PRINTF("stime: %d \r\n", _stime);
 
                 if (_fabric_detected_time == 0 && drum_limit == 0)
                     _fabric_detected_time = _stime;
@@ -308,7 +309,7 @@ static void ABK_app_task(void) {
                     float rspeed = ABK_map(_config.start_time, _config.p1.time,
                            0, _config.p1.speed, _stime);
                     ABK_set_speed(rspeed);
-                    USBport.printf("T1 %f", rspeed);
+                    DEBUG_PRINTF("T1 %f\r\n", rspeed);
                 }
                 else if (_stime >= _config.p1.time && _stime < _config.p2.time) {
                     if (!_force_drum_stop)
@@ -322,7 +323,7 @@ static void ABK_app_task(void) {
                     float rspeed = ABK_map(_config.p1.time, _config.p2.time,
                             _config.p1.speed, _config.p2.speed, _stime);
                     ABK_set_speed(rspeed);
-                    USBport.printf("T2 %f", rspeed);
+                    DEBUG_PRINTF("T2 %f\r\n", rspeed);
                 }
                 else if (_stime >= _config.p2.time && _stime < _config.stop_time) {
                     ABK_set_drum_mode(ABK_DRUM_BRAKED);
@@ -331,22 +332,21 @@ static void ABK_app_task(void) {
                     float rspeed = ABK_map(_config.p2.time, _config.stop_time,
                             _config.p2.speed, 0, _stime);
                     ABK_set_speed(rspeed);
-                    USBport.printf("T3 %f", rspeed);
+                    DEBUG_PRINTF("T3 %f\r\n", rspeed);
                 }
                 else if (_stime >= _config.stop_time) {
                     ABK_set_speed(0);
                     ABK_set_drum_mode(ABK_DRUM_FULLSTOP);
                     ABK_set_motor_mode(ABK_MOTOR_DISABLED);
-                    USBport.printf("S");
+                    DEBUG_PRINTF("S\r\n");
                     _triggered = false;
                     ABK_state = ABK_STATE_STANDBY;
                 } else {
                     ABK_set_speed(0);
                     ABK_set_drum_mode(ABK_DRUM_FULLSTOP);
                     ABK_set_motor_mode(ABK_MOTOR_DISABLED);
-                    USBport.printf("U");
+                    DEBUG_PRINTF("U\r\n");
                 }
-                USBport.printf("\r\n");
             } else {
                 ABK_set_speed(0);
                 ABK_set_drum_mode(ABK_DRUM_FULLSTOP);
