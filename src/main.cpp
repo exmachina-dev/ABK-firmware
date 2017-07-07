@@ -36,7 +36,8 @@ Serial USBport(ISP_TXD, ISP_RXD);
 
 // EEPROM
 #if ABK_HAS_EEPROM
-AT24CXX_I2C eeprom(I2C0_SDA, I2C0_SCL, 0x50);
+I2C i2c_eeprom(I2C0_SDA, I2C0_SCL);
+AT24CXX_I2C eeprom(&i2c_eeprom, 0x50);
 #endif
 
 Mutex ABK_config_mutex;
