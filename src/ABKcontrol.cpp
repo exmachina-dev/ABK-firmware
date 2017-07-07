@@ -89,7 +89,18 @@ float ABK_map(int from_val1, int from_val2, int to_val1, int to_val2, float valu
 }
 
 bool ABK_validate_config(ABK_config_t *config) {
-    return true;
+    uint8_t res = 0;
+
+    if ((config->start_time <= config->p1.time) &&
+            (config->p1.time <= config->p2.time) &&
+            (config->p2.time <= config->stop_time))
+        res += 1;
+    if (config->p1.speed <= 100)
+        res += 2;
+    if (config->p2.speed <= 100)
+        res += 4;
+
+    return (res == (1 + 2 + 4));
 }
 
 bool ABK_eeprom_read_config(AT24CXX_I2C *eeprom, ABK_config_t *config) {
