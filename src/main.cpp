@@ -360,23 +360,37 @@ static void ABK_app_task(void) {
 }
 
 static void ABK_serial_task(void) {
-    unsigned int res = 0;
     char cmd_buf[10];
     std::string line="";
     std::string cmd;
+    char c='\0';
+
+    ABK_config_t tmp_config;
+
+    ABK_config_mutex.lock();
+    ABK_eeprom_read_config(&eeprom, &tmp_config);
+    ABK_config_mutex.unlock();
 
     while (true) {
-        char c;
         if (USBport.readable() > 0) {
-            c = USBport.getc();
-            USBport.putc(c);
+            while (USBport.readable() > 0) {
+                c = USBport.getc();
+                line += c;
+                USBport.putc(c);
+                if (c == '\r' || c == '\n') {
+                    if (c == '\r')
+                        USBport.putc('\n');
+
+                    break;
+                }
+            }
+
             if (c == '\r' || c == '\n') {
-                if (c == '\r')
-                    USBport.putc('\n');
+                char opt_str[10];
+                int args;
+                unsigned int nargs = sscanf(line.c_str(), "%s %s %d", cmd_buf, opt_str, &args);
 
-                res = sscanf(line.c_str(), "%s", cmd_buf);
-
-                if (res > 0) {
+                if (nargs > 0) {
                     cmd = cmd_buf;
 
                     if (cmd == "help") {
@@ -394,34 +408,30 @@ static void ABK_serial_task(void) {
                         USBport.printf("\r\n");
                         USBport.printf("    get                  Return current configuration\r\n");
                         USBport.printf("    save                 Save configuration to eeprom\r\n");
+                        USBport.printf("    erase                Erase configuration from eeprom\r\n");
                         USBport.printf("    reset                Reset the microcontroller\r\n");
                         USBport.printf("    help                 Display this help message\r\n");
                     } else if (cmd == "set") {
-                        char opt_str[10];
-                        int args;
-                        int nargs = sscanf(line.c_str(), "%s %s %d", cmd_buf, opt_str, &args);
-                        if (nargs > 2) {
+                        if (nargs > 1) {
                             USBport.printf("%s set to %d\r\n", opt_str, args);
 
-                            ABK_config_mutex.lock();
-
                             if (strcmp(opt_str, "start") == 0) {
-                                ABK_config.start_time = (uint16_t) args;
+                                tmp_config.start_time = (uint16_t) args;
                             } else if (strcmp(opt_str, "p1.time") == 0) {
-                                ABK_config.p1.time = (uint16_t) args;
+                                tmp_config.p1.time = (uint16_t) args;
                             } else if (strcmp(opt_str, "p1.speed") == 0) {
-                                ABK_config.p1.speed = (uint16_t) args;
+                                tmp_config.p1.speed = (uint16_t) args;
                             } else if (strcmp(opt_str, "p2.time") == 0) {
-                                ABK_config.p2.time = (uint16_t) args;
+                                tmp_config.p2.time = (uint16_t) args;
                             } else if (strcmp(opt_str, "p2.speed") == 0) {
-                                ABK_config.p2.speed = (uint16_t) args;
+                                tmp_config.p2.speed = (uint16_t) args;
                             } else if (strcmp(opt_str, "stop") == 0) {
-                                ABK_config.stop_time = (uint16_t) args;
+                                tmp_config.stop_time = (uint16_t) args;
                             } else {
-                                USBport.printf("Unrecognized option: %s.", opt_str);
+                                USBport.printf("unrecognized option: %s.\r\n", opt_str);
                             }
-
-                            ABK_config_mutex.unlock();
+                        } else {
+                            USBport.printf("misformatted command: %s.\r\n", cmd_buf);
                         }
                     } else if (cmd == "get") {
                         ABK_config_mutex.lock();
@@ -432,43 +442,46 @@ static void ABK_serial_task(void) {
                         USBport.printf("stop %d\r\n", ABK_config.stop_time);
 
                         ABK_config_mutex.unlock();
+                    } else if (cmd == "gett") {
+                        USBport.printf("start %d\r\n", tmp_config.start_time);
+                        USBport.printf("p1.time %d\r\np1.speed %d\r\n", tmp_config.p1.time, tmp_config.p1.speed);
+                        USBport.printf("p2.time %d\r\np2.speed %d\r\n", tmp_config.p2.time, tmp_config.p2.speed);
+                        USBport.printf("stop %d\r\n", tmp_config.stop_time);
                     } else if (cmd == "save") {
                         ABK_config_mutex.lock();
 
-                        ABK_config.state = 1;
+                        tmp_config.state = 1;
 
-                        if (ABK_eeprom_write_config(&eeprom, &ABK_config))
-                            USBport.printf("config saved to EEPROM.");
+                        if (ABK_eeprom_write_config(&eeprom, &tmp_config))
+                            USBport.printf("config saved to EEPROM.\r\n");
                         else
-                            USBport.printf("error occured during writing to EEPROM.");
+                            USBport.printf("error occured during writing to EEPROM.\r\n");
 
                         ABK_config_mutex.unlock();
                     } else if (cmd == "erase") {
                         ABK_config_mutex.lock();
 
                         if (ABK_eeprom_erase_config(&eeprom))
-                            USBport.printf("config erased EEPROM.");
+                            USBport.printf("config erased EEPROM.\r\n");
                         else
-                            USBport.printf("error occured during erasing.");
+                            USBport.printf("error occured during erasing.\r\n");
 
                         ABK_config_mutex.unlock();
                     } else if (cmd == "reset") {
                         ABK_reset = true;
                     } else if (cmd == "version") {
-                        USBport.printf("%s", ABK_VERSION);
+                        USBport.printf("%s\r\n", ABK_VERSION);
                     } else {
-                        USBport.printf("unrecognized command: %s. Type 'help' for help", cmd_buf);
+                        USBport.printf("unrecognized command: %s. Type 'help' for help\r\n", cmd_buf);
                     }
-                    USBport.printf("\r\n");
                 }
 
-                line = ""; // Empty buffer
-            } else {
-                line += c;
+                line = "\0"; // Empty buffer
+                cmd = "\0";
             }
         }
 
 
-        Thread::wait(50);
+        Thread::wait(ABK_SERIAL_INTERVAL);
     }
 }
