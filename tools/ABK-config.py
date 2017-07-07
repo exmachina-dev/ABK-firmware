@@ -7,7 +7,7 @@ from PyQt5.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsObject
 from PyQt5.QtWidgets import QGraphicsLineItem, QGraphicsEllipseItem
 from PyQt5.QtGui import QPen, QColor
 from PyQt5.QtCore import Qt, QObject, QPointF, QLineF, QRectF
-from PyQt5.QtCore import pyqtSlot, pyqtSignal
+from PyQt5.QtCore import pyqtSlot, pyqtSignal, QTimer
 
 import PyQt5.uic as uic
 
@@ -313,6 +313,9 @@ class ABKConfig(QMainWindow):
         saveAction.triggered.connect(self.doSave)
         quitAction.triggered.connect(QApplication.quit)
 
+        aboutAction = self.menuBar().addAction('About')
+        aboutAction.triggered.connect(self.doAbout)
+
         self.setStatusMessage('Disconnected')
 
         self.portCombo = self.main.findChild(QComboBox, 'portCombo')
@@ -339,6 +342,8 @@ class ABKConfig(QMainWindow):
                 self.main.findChild(QSpinBox, 'y%dSpinBox' % i),))
 
         self.initPreview()
+
+        self.disableActions()
 
         self.initSerialCommands()
 
@@ -386,6 +391,7 @@ class ABKConfig(QMainWindow):
             return
 
         self.setStatusMessage('Connecting...')
+        self.main.findChild(QPushButton, 'connectButton').setText('Connecting')
 
         k = {
             'port': self._serialPort,
@@ -402,7 +408,6 @@ class ABKConfig(QMainWindow):
             return
 
         try:
-            print(data)
             if data[0] == b'version\n':
                 if len(data) > 1:
                     version = data[1]
@@ -413,8 +418,9 @@ class ABKConfig(QMainWindow):
                     self.setStatusMessage('Connected to ' + version.decode())
                     self.main.findChild(QPushButton, 'connectButton').clicked.connect(self.doDisconnect)
                     self.main.findChild(QPushButton, 'connectButton').setText('Disconnect')
+                    self.enableActions()
                     self._connected = True
-                    print(self._connected)
+                    QTimer.singleShot(50, self.doDeviceGet)
                 else:
                     self.setStatusMessage('Unable to connect.')
             elif data[0] == b'set\n':
@@ -425,7 +431,7 @@ class ABKConfig(QMainWindow):
                     d = line.decode().strip('\r\n')
                     d = d.split()
                     if len(d) > 1:
-                        cfg[d[0]] = d[1]
+                        cfg[d[0]] = int(d[1])
 
                 self.setCurrentConfig(cfg)
                 self.setStatusMessage('Config read from device.')
@@ -433,6 +439,8 @@ class ABKConfig(QMainWindow):
                 pass
             elif data[0] == b'reset\n':
                 pass
+            else:
+                print(' '.join([x.decode() for x in data]))
         except UnicodeDecodeError:
             self.setStatusMessage('Unable to decode message. Try another baud setting.')
         # except AttributeError:
@@ -446,6 +454,7 @@ class ABKConfig(QMainWindow):
         self.setStatusMessage('Disconnected.')
         self.main.findChild(QPushButton, 'connectButton').clicked.connect(self.doConnect)
         self.main.findChild(QPushButton, 'connectButton').setText('Connect')
+        self.disableActions()
 
     def doDeviceGet(self):
         self._serialObject.send(b'get\n')
@@ -457,17 +466,17 @@ class ABKConfig(QMainWindow):
 
         self.setStatusMessage('Writting config to device...')
 
+        i, j = 0, len(self.getCurrentConfig())
         for k, v in self.getCurrentConfig().items():
             data = 'set {} {:d}'.format(k, v).encode() + b'\n'
-            self._serialObject.send(data)
-            # TODO: Add a way to check written config
-            print(data)
-            time.sleep(0.25)
+            QTimer.singleShot(i*500, partial(self.setStatusMessage, 'Writting config to device... {:d}%'.format(int(i/j*100))))
+            QTimer.singleShot(i*500, partial(self._serialObject.send, data))
+            QTimer.singleShot(i*500+10, partial(self._serialObject.send, b'\n'))
 
-        self._serialObject.send('save\n')
-        time.sleep(0.5)
-        self.doDeviceReset()
+            i += 1
 
+        QTimer.singleShot((i)*500, partial(self._serialObject.send, b'save\n'))
+        QTimer.singleShot((i+1)*500, self.doDeviceReset)
         self.setStatusMessage('Config written to device.')
 
     def doDeviceReset(self):
@@ -486,6 +495,9 @@ class ABKConfig(QMainWindow):
     def doOpen(self):
         readFile, _ = QFileDialog.getOpenFileName(self, 'Load config from', '', 'Config file (*.cfg)')
 
+        if not readFile:
+            return
+
         with open(readFile, 'r') as f:
             cfg = {}
             for l in f.readlines():
@@ -497,9 +509,22 @@ class ABKConfig(QMainWindow):
     def doSave(self):
         writeFile, _ = QFileDialog.getSaveFileName(self, 'Save config to', '', 'Config file (*.cfg)')
 
+        if not writeFile:
+            return
+
         with open(writeFile, 'w') as f:
             for k, v in self.getCurrentConfig().items():
                 f.write('{} = {}\n'.format(k, v))
+
+    def doAbout(self):
+        about = QMessageBox.information(self, 'About',
+        '''ABK configuration tool — version: 0.1
+
+Copyright ExMachina 2017 — Released under MIT license
+
+Source code cound be found on Github at
+https://github.com/exmachina-dev/ABK-firmware/tree/master/tools"
+        ''', QMessageBox.Ok)
 
     def setCurrentConfig(self, cfg):
         ind = {
@@ -514,17 +539,18 @@ class ABKConfig(QMainWindow):
         for k, v in cfg.items():
             if k in ind.keys():
                 self.graphPoints[ind[k][0]][ind[k][1]].setValue(int(v))
+                print(k, ind[k], v)
             else:
                 self.setStatusMessage('Unrecognized config key: {}'.format(k))
 
     def getCurrentConfig(self):
         cfg = {}
-        cfg['start'] = self.graphPoints[1][0].value()
-        cfg['p1.time'] = self.graphPoints[2][0].value()
-        cfg['p1.speed'] = self.graphPoints[2][1].value()
-        cfg['p2.time'] = self.graphPoints[3][0].value()
-        cfg['p2.speed'] = self.graphPoints[3][1].value()
-        cfg['stop'] = self.graphPoints[4][0].value()
+        cfg['start'] = int(self.graphPoints[1][0].value())
+        cfg['p1.time'] = int(self.graphPoints[2][0].value())
+        cfg['p1.speed'] = int(self.graphPoints[2][1].value())
+        cfg['p2.time'] = int(self.graphPoints[3][0].value())
+        cfg['p2.speed'] = int(self.graphPoints[3][1].value())
+        cfg['stop'] = int(self.graphPoints[4][0].value())
 
         return cfg
 
@@ -544,6 +570,18 @@ class ABKConfig(QMainWindow):
 
     def setStatusMessage(self, msg):
         self.main.statusBar.showMessage(msg)
+
+    def disableActions(self):
+        self.main.findChild(QPushButton, 'getConfigButton').setEnabled(False)
+        self.main.findChild(QPushButton, 'saveConfigButton').setEnabled(False)
+        self.main.findChild(QPushButton, 'resetButton').setEnabled(False)
+        self.main.findChild(QPushButton, 'eraseButton').setEnabled(False)
+
+    def enableActions(self):
+        self.main.findChild(QPushButton, 'getConfigButton').setEnabled(True)
+        self.main.findChild(QPushButton, 'saveConfigButton').setEnabled(True)
+        self.main.findChild(QPushButton, 'resetButton').setEnabled(True)
+        self.main.findChild(QPushButton, 'eraseButton').setEnabled(True)
 
 
 if __name__ == '__main__':
