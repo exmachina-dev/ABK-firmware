@@ -8,7 +8,7 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-#define ABK_VERSION         "v0.1"
+#define ABK_VERSION         "v1.1"
 #define ABK_HAS_LCD         0
 #define ABK_HAS_EEPROM      1
 #define ABK_HAS_USBSERIAL   0
@@ -16,6 +16,7 @@
 #define ABK_SIMULATE        0
 #define ABK_TEST            0
 #define ABK_MOTOR_TEST      0
+#define ABK_DEBUG           1
 
 #define ABK_INTERVAL        (10)
 #define ABK_SERIAL_INTERVAL (10)
