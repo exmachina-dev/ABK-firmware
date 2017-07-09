@@ -18,6 +18,6 @@
 #define ABK_MOTOR_TEST      0
 #define ABK_DEBUG           1
 
-#define ABK_INTERVAL        (20)
+#define ABK_INTERVAL        (10)
 
 #endif /* !CONFIG_H */
