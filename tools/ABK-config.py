@@ -369,6 +369,7 @@ class ABKConfig(QMainWindow):
         for i, gp in enumerate(self.graphPoints):
             if gp[0] is not None:
                 gp[0].valueChanged[int].connect(partial(self.timeLine.setPointX, i))
+                gp[0].setKeyboardTracking(False)
 
             if gp[1] is not None:
                 gp[1].valueChanged[int].connect(partial(self.timeLine.setPointY, i))
