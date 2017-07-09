@@ -104,21 +104,7 @@ class LinkedLines(QGraphicsObject):
         if p > 0 and p < self.npoints - 1:
             self._points[p - 1].setCenter(point)
 
-        # Update next points if value exceed next point value
-        if p < self.npoints - 1:
-            if x > self._pointsF[p + 1].x():
-                if self.xFactor:
-                    x = x / self.xFactor
-                self.setPointX(p + 1, x)
-                self.pointXChanged.emit(p + 1, x)
-
-        # Update previous points if previous point value exceed value
-        if p > 0:
-            if x < self._pointsF[p - 1].x():
-                if self.xFactor:
-                    x = x / self.xFactor
-                self.setPointX(p - 1, x)
-                self.pointXChanged.emit(p - 1, x)
+        self.updateAdjacentPointsX(p, x)
 
     def setPointY(self, p, y):
         self.prepareGeometryChange()
@@ -138,6 +124,23 @@ class LinkedLines(QGraphicsObject):
 
         if p > 0 and p < self.npoints - 1:
             self._points[p - 1].setCenter(point)
+
+    def updateAdjacentPointsX(self, p, x):
+        # Update next points if value exceed next point value
+        if p < self.npoints - 1:
+            if x > self._pointsF[p + 1].x():
+                if self.xFactor:
+                    x = x / self.xFactor
+                self.setPointX(p + 1, x)
+                self.pointXChanged.emit(p + 1, x)
+
+        # Update previous points if previous point value exceed value
+        if p > 0:
+            if x < self._pointsF[p - 1].x():
+                if self.xFactor:
+                    x = x / self.xFactor
+                self.setPointX(p - 1, x)
+                self.pointXChanged.emit(p - 1, x)
 
     def paint(self, *args, **kwargs):
         for l in self._lines:
