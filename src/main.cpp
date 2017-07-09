@@ -386,6 +386,9 @@ static void ABK_serial_task(void) {
                 c = USBport.getc();
                 line += c;
                 USBport.putc(c);
+                if (c == 0x08) { // Backspace character
+                    line.erase(line.end()-1);
+                }
                 if (c == '\r' || c == '\n') {
                     if (c == '\r')
                         USBport.putc('\n');
