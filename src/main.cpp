@@ -411,11 +411,12 @@ static void ABK_serial_task(void) {
                         USBport.printf("available commands:\r\n");
                         USBport.printf("    set OPTION VALUE     Set the option to the desired value.\r\n");
                         USBport.printf("                         Integer and float are accepted.\r\n");
+                        USBport.printf("                         DELAYs are in milliseconds, SPEEDs in percent.\r\n");
                         USBport.printf("         start DELAY     Delay from trigger to start.\r\n");
                         USBport.printf("         p1.time DELAY   Delay from trigger to point 1.\r\n");
-                        USBport.printf("         p1.speed DELAY  Speed at point 1.\r\n");
+                        USBport.printf("         p1.speed SPEED  Speed at point 1.\r\n");
                         USBport.printf("         p2.time DELAY   Delay from trigger to point 2.\r\n");
-                        USBport.printf("         p2.speed DELAY  Speed at point 2.\r\n");
+                        USBport.printf("         p2.speed SPEED  Speed at point 2.\r\n");
                         USBport.printf("         stop DELAY      Delay from trigger to full stop.\r\n");
                         USBport.printf("\r\n");
                         USBport.printf("    get                  Return current configuration\r\n");
