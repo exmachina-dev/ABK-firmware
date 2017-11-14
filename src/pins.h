@@ -13,10 +13,48 @@
 #include "PinNames.h"
 #include "mbed.h"
 
-#define LED1            P1_21
-#define LED2            P1_18
+// Generic IO map
+#define INPUT1_1        P2_9
+#define INPUT1_2        P0_16
+#define INPUT1_3        P0_15
+#define INPUT1_4        P0_17
+#define INPUT2_1        P0_19
+#define INPUT2_2        P0_18
+#define INPUT2_3        P0_21
+#define INPUT2_4        P0_22
+#define INPUT3_1        P0_20
+
+#define OUTPUT1_1       P0_0
+#define OUTPUT1_2       P1_29
+#define OUTPUT1_3       P1_28
+#define OUTPUT1_4       P1_27
+#define OUTPUT2_1       P1_25
+#define OUTPUT2_2       P1_24
+#define OUTPUT2_3       P1_23
+#define OUTPUT2_4       P1_22
+#define OUTPUT3_1       P1_26
+
+#define LED1            P1_18
+#define LED2            P1_21
 #define LED3            NC
 #define LED4            NC
+
+#define I2C0_SDA        P0_27
+#define I2C0_SCL        P0_28
+#define I2C1_SDA        P0_0
+#define I2C1_SCL        P0_1
+#define I2C2_SDA        P0_10
+#define I2C2_SCL        P0_11
+
+#define USB_DP          P0_29
+#define USB_DN          P0_30
+
+#define ENC_A           P1_20
+#define ENC_B           P1_23
+#define ENC_I           P1_24
+
+#define CAN1_RXD        P0_0
+#define CAN1_TXD        P0_1
 
 #define LED_HMI1        P2_2
 #define LED_HMI2        P2_3
