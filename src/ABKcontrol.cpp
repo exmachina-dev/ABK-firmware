@@ -44,12 +44,12 @@ int ABK_set_speed(float speed) {
     period = (int) (1000000.0 / ABK_map(0, 100, ABK_MOT_MIN_FREQ, ABK_MOT_MAX_FREQ, speed));
 
     if (period > (1000000 / ABK_MOT_MIN_FREQ))
-        period = 500;
+        period = 1000000 / ABK_MOT_MIN_FREQ;
     else if (period < (1000000 / ABK_MOT_MAX_FREQ))
-        period = 45;
+        period = 1000000 / ABK_MOT_MAX_FREQ;
 
     motor_ctl.period_us(period);
-    motor_ctl = dt;
+    motor_ctl = dt - ((speed / 100) * 0.3);
     return 0;
 }
 
