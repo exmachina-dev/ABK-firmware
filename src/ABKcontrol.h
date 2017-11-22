@@ -12,8 +12,8 @@
 
 #include "AT24Cxx_I2C.h"
 
-#define ABK_MOT_MIN_FREQ            (2350)
-#define ABK_MOT_MAX_FREQ            (12000)
+#define ABK_MOT_MIN_FREQ            (2000.0)
+#define ABK_MOT_MAX_FREQ            (22000.0)
 
 #define ABK_CLUTCH_BRAKE_DELAY      (350)       // ms
 
