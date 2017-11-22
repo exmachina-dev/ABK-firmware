@@ -2,18 +2,21 @@
 <ui version="4.0">
  <class>MainWindow</class>
  <widget class="QMainWindow" name="MainWindow">
+  <property name="windowModality">
+   <enum>Qt::NonModal</enum>
+  </property>
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>511</width>
-    <height>591</height>
+    <width>570</width>
+    <height>800</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
-    <width>500</width>
-    <height>100</height>
+    <width>570</width>
+    <height>800</height>
    </size>
   </property>
   <property name="palette">
@@ -72,19 +75,6 @@
            <item>
             <widget class="QComboBox" name="portCombo"/>
            </item>
-           <item alignment="Qt::AlignRight|Qt::AlignVCenter">
-            <widget class="QLabel" name="baudrateLabel">
-             <property name="text">
-              <string>Baudrate:</string>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QComboBox" name="baudrateCombo"/>
-           </item>
            <item>
             <spacer name="horizontalSpacer">
              <property name="orientation">
@@ -105,6 +95,69 @@
             <widget class="QPushButton" name="connectButton">
              <property name="text">
               <string>Connect</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="QGroupBox" name="controlGroup">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="title">
+         <string>Control</string>
+        </property>
+        <layout class="QHBoxLayout" name="horizontalLayout_5">
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_4">
+           <property name="spacing">
+            <number>6</number>
+           </property>
+           <property name="topMargin">
+            <number>0</number>
+           </property>
+           <item>
+            <widget class="QPushButton" name="slowfeedRewindButton">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>40</height>
+              </size>
+             </property>
+             <property name="text">
+              <string>Slowfeed RW</string>
+             </property>
+             <property name="checkable">
+              <bool>false</bool>
+             </property>
+             <property name="flat">
+              <bool>false</bool>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="slowfeedForwardButton">
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>40</height>
+              </size>
+             </property>
+             <property name="text">
+              <string>Slowfeed FW</string>
              </property>
             </widget>
            </item>
@@ -216,23 +269,7 @@
              </property>
              <layout class="QGridLayout" name="gridLayout_4">
               <item row="0" column="0">
-               <layout class="QGridLayout" name="gridLayout_6">
-                <item row="0" column="1" colspan="3">
-                 <widget class="QSpinBox" name="x1SpinBox">
-                  <property name="styleSheet">
-                   <string notr="true"/>
-                  </property>
-                  <property name="suffix">
-                   <string extracomment="milliseconds"> ms</string>
-                  </property>
-                  <property name="maximum">
-                   <number>60000</number>
-                  </property>
-                  <property name="singleStep">
-                   <number>10</number>
-                  </property>
-                 </widget>
-                </item>
+               <layout class="QGridLayout" name="gridLayout_6" columnstretch="1,2,1,2">
                 <item row="0" column="0">
                  <widget class="QLabel" name="x1Label">
                   <property name="layoutDirection">
@@ -276,19 +313,6 @@
                   </property>
                   <property name="alignment">
                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                  </property>
-                 </widget>
-                </item>
-                <item row="3" column="1" colspan="3">
-                 <widget class="QSpinBox" name="x4SpinBox">
-                  <property name="suffix">
-                   <string extracomment="milliseconds"> ms</string>
-                  </property>
-                  <property name="maximum">
-                   <number>60000</number>
-                  </property>
-                  <property name="singleStep">
-                   <number>10</number>
                   </property>
                  </widget>
                 </item>
@@ -358,49 +382,133 @@
                   </property>
                  </widget>
                 </item>
+                <item row="0" column="1">
+                 <widget class="QSpinBox" name="x1SpinBox">
+                  <property name="styleSheet">
+                   <string notr="true"/>
+                  </property>
+                  <property name="suffix">
+                   <string extracomment="milliseconds"> ms</string>
+                  </property>
+                  <property name="maximum">
+                   <number>60000</number>
+                  </property>
+                  <property name="singleStep">
+                   <number>10</number>
+                  </property>
+                 </widget>
+                </item>
+                <item row="3" column="1">
+                 <widget class="QSpinBox" name="x4SpinBox">
+                  <property name="suffix">
+                   <string extracomment="milliseconds"> ms</string>
+                  </property>
+                  <property name="maximum">
+                   <number>60000</number>
+                  </property>
+                  <property name="singleStep">
+                   <number>10</number>
+                  </property>
+                 </widget>
+                </item>
                </layout>
               </item>
              </layout>
             </widget>
            </item>
            <item>
-            <widget class="QPushButton" name="getConfigButton">
-             <property name="styleSheet">
-              <string notr="true"/>
+            <layout class="QGridLayout" name="gridLayout_5">
+             <property name="topMargin">
+              <number>10</number>
              </property>
-             <property name="text">
-              <string>Get configuration from device</string>
+             <property name="horizontalSpacing">
+              <number>6</number>
              </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="saveConfigButton">
-             <property name="text">
-              <string>Save to device</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="resetButton">
-             <property name="text">
-              <string>Reset device</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="eraseButton">
-             <property name="text">
-              <string>Erase device memory</string>
-             </property>
-             <property name="flat">
-              <bool>false</bool>
-             </property>
-            </widget>
+             <item row="0" column="0">
+              <widget class="QPushButton" name="getConfigButton">
+               <property name="styleSheet">
+                <string notr="true"/>
+               </property>
+               <property name="text">
+                <string>Get configuration from device</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="1">
+              <widget class="QPushButton" name="saveConfigButton">
+               <property name="text">
+                <string>Save to device</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="0">
+              <widget class="QPushButton" name="resetButton">
+               <property name="text">
+                <string>Reset device</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="1">
+              <widget class="QPushButton" name="eraseButton">
+               <property name="text">
+                <string>Erase device memory</string>
+               </property>
+               <property name="flat">
+                <bool>false</bool>
+               </property>
+              </widget>
+             </item>
+            </layout>
            </item>
           </layout>
          </item>
         </layout>
        </widget>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="1,2,1,4,1">
+        <property name="topMargin">
+         <number>0</number>
+        </property>
+        <property name="bottomMargin">
+         <number>0</number>
+        </property>
+        <item>
+         <widget class="QLabel" name="label">
+          <property name="text">
+           <string>Status</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="statusLineEdit">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="label_2">
+          <property name="text">
+           <string>Error codes</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="errorLineEdit">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="statusButton">
+          <property name="text">
+           <string>Refresh</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </item>
      </layout>
     </item>

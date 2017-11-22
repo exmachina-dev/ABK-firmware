@@ -2,7 +2,8 @@ import sys
 from functools import partial
 
 from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog, QMessageBox
-from PyQt5.QtWidgets import QPushButton, QComboBox, QSpinBox
+from PyQt5.QtWidgets import QDialog, QVBoxLayout, QDialogButtonBox
+from PyQt5.QtWidgets import QPushButton, QComboBox, QSpinBox, QLineEdit
 from PyQt5.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsObject
 from PyQt5.QtWidgets import QGraphicsLineItem, QGraphicsEllipseItem
 from PyQt5.QtGui import QPen, QColor
@@ -17,6 +18,44 @@ from serial.tools import list_ports
 import threading
 import time
 import os.path
+
+ABK_STATE = {
+        0: 'STANDBY',
+        1: 'NOT_CONFIGURED',
+        2: 'CONFIGURED',
+        3: 'READY',
+        4: 'RUN',
+        5: 'SLOWFEED',
+        6: 'RESET',
+        }
+
+ABK_ERROR = {
+        0x01: 'EMERGENCY_STOP',
+        0x02: 'NOT_CONFIGURED',
+        0x04: 'INVALID_CONFIG',
+        0x08: 'VFD_ERROR',
+        }
+
+def ABK_get_status_text(status_code):
+    if not isinstance(status_code, int):
+        status_code = int(status_code, 16)
+    return '0x{:x} - {}'.format(status_code, ABK_STATE.get(status_code, 'UNKNOWN'))
+
+def ABK_get_error_text(error_code):
+    if not isinstance(error_code, int):
+        error_code = int(error_code, 16)
+
+    if error_code != 0:
+        errors = []
+        for i, err in ABK_ERROR.items():
+            if (error_code & i) == i and i != 0:
+                errors.append(err)
+
+        errors.reverse()
+        text = ', '.join(errors)
+    else:
+        text = 'NONE'
+    return '0x{:x} - {}'.format(error_code, text)
 
 
 class QGraphicsCircleItem(QGraphicsEllipseItem):
@@ -188,8 +227,19 @@ class SerialThread(threading.Thread):
             raise RuntimeError('Unable to open serial port.')
 
     def run(self, *args, **kwargs):
+        tries = 0
         while not self._exit_ev.is_set():
-            rdata = self._serial.read(self._serial.in_waiting)
+            try:
+                rdata = self._serial.read(self._serial.in_waiting)
+                tries = 0
+            except Exception as e:
+                print('Unable to read: {!s}'.format(e))
+                tries += 1
+
+                if tries >= 5:
+                    self._exit_ev.set()
+                    print('Closing serial connection.')
+
             if not rdata:
                 self._exit_ev.wait(0.5)
                 continue
@@ -236,6 +286,8 @@ class SerialThread(threading.Thread):
     def join(self, timeout=1.0):
         self._exit_ev.set()
         threading.Thread.join(self, timeout)
+        self._serial.close()
+        self._serial = None
 
     def close(self):
         self.join(5)
@@ -257,14 +309,14 @@ class QSerial(QObject):
         try:
             self._serialThread = SerialThread(**kwargs)
             self._serialThread.start()
+
+            self._timer = self.startTimer(5)
         except RuntimeError as e:
             self.parent().setStatusMessage('Unable to launch serial: ' + str(e))
         else:
             self._opened = True
         finally:
             self._opened = False
-
-        self._timer = self.startTimer(5)
 
     def send(self, data):
         if self._serialThread:
@@ -273,16 +325,60 @@ class QSerial(QObject):
     def close(self):
         if self._serialThread:
             self._serialThread.close()
+            del self._serialThread
             self._opened = False
+
+        if self._timer:
+            self.killTimer(self._timer)
 
     def timerEvent(self, ev):
         if ev.timerId() == self._timer:
-            if self._serialThread:
-                data = self._serialThread.read()
+            if self._serialThread and self._serialThread.is_alive():
+                try:
+                    data = self._serialThread.read()
+                except Exception as e:
+                    self.parent().setStatusMessage('Unable to read data: {!s}'.format(e))
                 if data:
                     self.dataAvailable.emit(data)
+            else:
+                self.parent().doDisconnect()
         else:
             super().timerEvent(ev)
+
+class OptionDialog(QDialog):
+    def __init__(self, parent = None):
+        super().__init__(parent)
+
+        layout = QVBoxLayout(self)
+
+        self.baudrateCombo = QComboBox(self)
+
+        self.baudrateCombo.addItem('')
+        for b in self.BAUDRATES:
+            self.baudrateCombo.addItem(str(b))
+
+        layout.addWidget(self.baudrateCombo)
+
+        # OK and Cancel buttons
+        self.buttons = QDialogButtonBox(
+            QDialogButtonBox.Ok | QDialogButtonBox.Cancel,
+            Qt.Horizontal, self)
+        layout.addWidget(self.buttons)
+
+        self.buttons.accepted.connect(self.accept)
+        self.buttons.rejected.connect(self.reject)
+
+    # get baudrate from dialog
+    def baudrate(self):
+        return self.baudrateCombo.currentText()
+
+    # static method to create the dialog and return baudrate
+    @staticmethod
+    def getBaudrate(parent = None):
+        dialog = OptionDialog(parent)
+        result = dialog.exec_()
+        baudrate = dialog.baudrate()
+        return (baudrate, result == QDialog.Accepted)
 
 
 class ABKConfig(QMainWindow):
@@ -293,6 +389,7 @@ class ABKConfig(QMainWindow):
     def __init__(self):
         super().__init__()
 
+        OptionDialog.BAUDRATES = ABKConfig.BAUDRATES
         self.initUi()
 
     def initUi(self):
@@ -306,6 +403,8 @@ class ABKConfig(QMainWindow):
         openAction = fileMenu.addAction('Load from file')
         saveAction = fileMenu.addAction('Save to file')
         fileMenu.addSeparator()
+        optionAction = fileMenu.addAction('Options')
+        fileMenu.addSeparator()
         quitAction = fileMenu.addAction('Quit')
 
         openAction.setShortcut('Ctrl+O')
@@ -314,6 +413,7 @@ class ABKConfig(QMainWindow):
 
         openAction.triggered.connect(self.doOpen)
         saveAction.triggered.connect(self.doSave)
+        optionAction.triggered.connect(self.doOption)
         quitAction.triggered.connect(QApplication.quit)
 
         aboutAction = self.menuBar().addAction('About')
@@ -322,7 +422,6 @@ class ABKConfig(QMainWindow):
         self.setStatusMessage('Disconnected')
 
         self.portCombo = self.main.findChild(QComboBox, 'portCombo')
-        self.baudrateCombo = self.main.findChild(QComboBox, 'baudrateCombo')
 
         self._port_list = list_ports.comports()
 
@@ -330,10 +429,6 @@ class ABKConfig(QMainWindow):
 
         for p in self._port_list:
             self.portCombo.addItem(p[0])
-
-        self.baudrateCombo.addItem('')
-        for b in self.BAUDRATES:
-            self.baudrateCombo.addItem(str(b))
 
         self.timeView = self.main.findChild(QGraphicsView, 'timePreview')
 
@@ -377,19 +472,29 @@ class ABKConfig(QMainWindow):
     def initSerialCommands(self):
         self._serialPort = None
         self._serialBaud = None
+        self._serialObject = None
         self._connected = False
-
-        self._serialObject = QSerial(self)
+        self._connectedVersion = None
 
         self.main.findChild(QPushButton, 'connectButton').clicked.connect(self.doConnect)
+
+        self.main.findChild(QPushButton, 'slowfeedRewindButton').pressed.connect(partial(self.doDeviceSlowfeed, 0, 1))
+        self.main.findChild(QPushButton, 'slowfeedForwardButton').pressed.connect(partial(self.doDeviceSlowfeed, 1, 1))
+        self.main.findChild(QPushButton, 'slowfeedRewindButton').released.connect(partial(self.doDeviceSlowfeed, 0, 0))
+        self.main.findChild(QPushButton, 'slowfeedForwardButton').released.connect(partial(self.doDeviceSlowfeed, 1, 0))
+
         self.main.findChild(QPushButton, 'getConfigButton').clicked.connect(self.doDeviceGet)
         self.main.findChild(QPushButton, 'saveConfigButton').clicked.connect(self.doDeviceSave)
         self.main.findChild(QPushButton, 'resetButton').clicked.connect(self.doDeviceReset)
         self.main.findChild(QPushButton, 'eraseButton').clicked.connect(self.doDeviceErase)
         self.main.findChild(QComboBox, 'portCombo').currentTextChanged.connect(self.serialPort)
-        self.main.findChild(QComboBox, 'baudrateCombo').currentTextChanged.connect(self.serialBaud)
+
+        self.main.findChild(QPushButton, 'statusButton').clicked.connect(self.doDeviceStatus)
 
     def doConnect(self, *args):
+        if not self._serialBaud:
+            self._serialBaud = 115200
+
         if not self._serialPort or not self._serialBaud:
             self.setStatusMessage('Invalid parameters')
             return
@@ -401,9 +506,15 @@ class ABKConfig(QMainWindow):
             'port': self._serialPort,
             'baudrate': self._serialBaud,
         }
-        self._serialObject.open(serial_kwargs=k)
-        self._serialObject.dataAvailable.connect(self.parseSerialData)
-        self._serialObject.send(b'version\n')
+
+        try:
+            self._serialObject = QSerial(self)
+            self._serialObject.open(serial_kwargs=k)
+            QTimer.singleShot(500, partial(self._serialObject.dataAvailable.connect, self.parseSerialData))
+            QTimer.singleShot(500, partial(self.serialSend, b'version\n'))
+        except Exception as e:
+            self.setStatusMessage('Unable to connect: {!s}'.format(e))
+            self.doDisconnect()
 
     @pyqtSlot(tuple)
     def parseSerialData(self, data):
@@ -422,9 +533,16 @@ class ABKConfig(QMainWindow):
                     self.setStatusMessage('Connected to ' + version.decode())
                     self.main.findChild(QPushButton, 'connectButton').clicked.connect(self.doDisconnect)
                     self.main.findChild(QPushButton, 'connectButton').setText('Disconnect')
-                    self.enableActions()
                     self._connected = True
                     QTimer.singleShot(50, self.doDeviceGet)
+                    QTimer.singleShot(500, self.doDeviceStatus)
+                    try:
+                        self._connectedVersion = [int(x) for x in version.decode().strip('v').split('.')]
+                    except Exception:
+                        self.doDisconnect()
+                        self.setStatusMessage('Unable to connect to device.')
+
+                    self.enableActions()
                 else:
                     self.setStatusMessage('Unable to connect.')
             elif data[0] == b'set\n':
@@ -443,6 +561,12 @@ class ABKConfig(QMainWindow):
                 pass
             elif data[0] == b'reset\n':
                 pass
+            elif data[0] == b'status\n':
+                d = data[1].decode().strip('\r\n').split()
+                self.main.findChild(QLineEdit, 'statusLineEdit').setText(
+                        ABK_get_status_text(int(d[1], 16)))
+                self.main.findChild(QLineEdit, 'errorLineEdit').setText(
+                        ABK_get_error_text(int(d[3], 16)))
             else:
                 print(' '.join([x.decode() for x in data]))
         except UnicodeDecodeError:
@@ -452,16 +576,48 @@ class ABKConfig(QMainWindow):
         except IndexError:
             self.setStatusMessage('Bad response from device.')
 
+    @property
+    def connectedVersion(self):
+        if hasattr(self, '_connectedVersion') and self._connectedVersion:
+            return self._connectedVersion
+        return None
+
+    def serialSend(self, data):
+        try:
+            self._serialObject.send(data)
+        except Exception as e:
+            self.setStatusMessage('Unable to send data: {!s}'.format(e))
+
     def doDisconnect(self):
-        self._serialObject.close()
+        self.doDeviceSlowfeed(0, 0)
+
+        if self._serialObject:
+            self._serialObject.close()
+            del self._serialObject
+        self._serialObject = None
         self._connected = False
+        self._connectedVersion = None
         self.setStatusMessage('Disconnected.')
         self.main.findChild(QPushButton, 'connectButton').clicked.connect(self.doConnect)
         self.main.findChild(QPushButton, 'connectButton').setText('Connect')
         self.disableActions()
 
+    def doDeviceSlowfeed(self, direction=0, state=False):
+        _cmd = b''
+
+        if state:
+            _dir = b'forward'
+            if direction != 0:
+                _dir = b'rewind'
+
+            _cmd = b'slowfeed ' + _dir + b'\n'
+        else:
+            _cmd = b'slowfeed stop\n'
+        print(_cmd.decode())
+        self.serialSend(_cmd)
+
     def doDeviceGet(self):
-        self._serialObject.send(b'get\n')
+        self.serialSend(b'get\n')
 
     def doDeviceSave(self):
         if not self._connected:
@@ -473,19 +629,24 @@ class ABKConfig(QMainWindow):
         i, j = 0, len(self.getCurrentConfig())
         for k, v in self.getCurrentConfig().items():
             data = 'set {} {:d}'.format(k, v).encode() + b'\n'
-            QTimer.singleShot(i*500, partial(self.setStatusMessage, 'Writting config to device... {:d}%'.format(int(i/j*100))))
-            QTimer.singleShot(i*500, partial(self._serialObject.send, data))
-            QTimer.singleShot(i*500+10, partial(self._serialObject.send, b'\n'))
+            self.setStatusMessage('Writting config to device... {:d}%'.format(int(i/j*100)))
+            self.serialSend(data)
+            time.sleep(0.5)
 
             i += 1
 
-        QTimer.singleShot((i)*500, partial(self._serialObject.send, b'save\n'))
-        QTimer.singleShot((i+1)*500, self.doDeviceReset)
+        self.serialSend(b'save\n')
+        QTimer.singleShot(100, self.doDeviceReset)
         self.setStatusMessage('Config written to device.')
 
     def doDeviceReset(self):
-        self._serialObject.send(b'reset\n')
-        self.setStatusMessage('Device reset.')
+        if self.connectedVersion and self.connectedVersion[0] >= 2 and self.connectedVersion[1] >= 0:
+            self.serialSend(b'reset\n')
+            self.doDisconnect()
+            QTimer.singleShot(2000, self.doConnect)
+            self.setStatusMessage('Device reset.')
+        else:
+            self.setStatusMessage('This version doesn\'t support reset, you nedd to powercycle the unit.')
 
     def doDeviceErase(self):
         confirm = QMessageBox.question(self, 'Confirmation',
@@ -493,8 +654,11 @@ class ABKConfig(QMainWindow):
             QMessageBox.No, QMessageBox.No)
 
         if confirm == QMessageBox.Yes:
-            self._serialObject.send(b'erase\n')
+            self.serialSend(b'erase\n')
             self.setStatusMessage('Device memory erased.')
+
+    def doDeviceStatus(self):
+        self.serialSend(b'status\n')
 
     def doOpen(self):
         readFile, _ = QFileDialog.getOpenFileName(self, 'Load config from', '', 'Config file (*.cfg)')
@@ -522,13 +686,18 @@ class ABKConfig(QMainWindow):
 
     def doAbout(self):
         about = QMessageBox.information(self, 'About',
-        '''ABK configuration tool — version: 0.1
+        '''ABK configuration tool — version: 1.0
 
 Copyright ExMachina 2017 — Released under MIT license
 
 Source code cound be found on Github at
 https://github.com/exmachina-dev/ABK-firmware/tree/master/tools"
         ''', QMessageBox.Ok)
+
+    def doOption(self):
+        b, o = OptionDialog.getBaudrate(self.main)
+        if o:
+            self.serialBaud(b)
 
     def setCurrentConfig(self, cfg):
         ind = {
@@ -573,19 +742,35 @@ https://github.com/exmachina-dev/ABK-firmware/tree/master/tools"
             pass
 
     def setStatusMessage(self, msg):
-        self.main.statusBar.showMessage(msg)
+        if self.connectedVersion:
+            v = '.'.join([str(x) for x in self.connectedVersion])
+            self.main.statusBar.showMessage('Abrakabuki v{} - {}'.format(v, msg))
+        else:
+            self.main.statusBar.showMessage(msg)
 
     def disableActions(self):
+        self.main.findChild(QPushButton, 'slowfeedForwardButton').setEnabled(False)
+        self.main.findChild(QPushButton, 'slowfeedRewindButton').setEnabled(False)
         self.main.findChild(QPushButton, 'getConfigButton').setEnabled(False)
         self.main.findChild(QPushButton, 'saveConfigButton').setEnabled(False)
         self.main.findChild(QPushButton, 'resetButton').setEnabled(False)
         self.main.findChild(QPushButton, 'eraseButton').setEnabled(False)
+        self.main.findChild(QPushButton, 'statusButton').setEnabled(False)
 
     def enableActions(self):
         self.main.findChild(QPushButton, 'getConfigButton').setEnabled(True)
         self.main.findChild(QPushButton, 'saveConfigButton').setEnabled(True)
-        self.main.findChild(QPushButton, 'resetButton').setEnabled(True)
+
+        if self.connectedVersion and self.connectedVersion[0] >= 2 and self.connectedVersion[1] >= 0:
+            self.main.findChild(QPushButton, 'resetButton').setEnabled(True)
+
         self.main.findChild(QPushButton, 'eraseButton').setEnabled(True)
+
+        print(self.connectedVersion)
+        if self.connectedVersion and self.connectedVersion[0] >= 1:
+            self.main.findChild(QPushButton, 'slowfeedForwardButton').setEnabled(True)
+            self.main.findChild(QPushButton, 'slowfeedRewindButton').setEnabled(True)
+            self.main.findChild(QPushButton, 'statusButton').setEnabled(True)
 
 
 if __name__ == '__main__':
