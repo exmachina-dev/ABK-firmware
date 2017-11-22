@@ -557,6 +557,13 @@ available commands:\r\n\
                         ABK_config_mutex.unlock();
                     } else if (cmd == "reset") {
                         ABK_reset = true;
+                    } else if (cmd == "slowfeed") {
+                        ABK_slowfeed = 0;
+                        if (strcmp(opt_str, "forward") == 0) {
+                            ABK_slowfeed = 1;
+                        } else if (strcmp(opt_str, "rewind") == 0) {
+                            ABK_slowfeed = 2;
+                        }
                     } else if (cmd == "version") {
                         USBport.printf("%s\r\n", ABK_VERSION);
                     } else if (cmd == "status") {
