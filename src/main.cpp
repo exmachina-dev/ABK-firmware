@@ -434,7 +434,6 @@ static void ABK_app_task(void) {
 }
 
 static void ABK_serial_task(void) {
-    char cmd_buf[10];
     std::string line="";
     std::string cmd;
     char c='\0';
@@ -463,6 +462,7 @@ static void ABK_serial_task(void) {
             }
 
             if (c == '\r' || c == '\n') {
+                char cmd_buf[10] = {0, 0, 0, 0, 0, 0, 0, 0};
                 char opt_str[10];
                 int args;
                 unsigned int nargs = sscanf(line.c_str(), "%s %s %d", cmd_buf, opt_str, &args);
@@ -471,24 +471,28 @@ static void ABK_serial_task(void) {
                     cmd = cmd_buf;
 
                     if (cmd == "help") {
-                        USBport.printf("Abrakabuki by ExMachina\r\n");
-                        USBport.printf("    version: %s\r\n\r\n", ABK_VERSION);
-                        USBport.printf("available commands:\r\n");
-                        USBport.printf("    set OPTION VALUE     Set the option to the desired value.\r\n");
-                        USBport.printf("                         Integer and float are accepted.\r\n");
-                        USBport.printf("                         DELAYs are in milliseconds, SPEEDs in percent.\r\n");
-                        USBport.printf("         start DELAY     Delay from trigger to start.\r\n");
-                        USBport.printf("         p1.time DELAY   Delay from trigger to point 1.\r\n");
-                        USBport.printf("         p1.speed SPEED  Speed at point 1.\r\n");
-                        USBport.printf("         p2.time DELAY   Delay from trigger to point 2.\r\n");
-                        USBport.printf("         p2.speed SPEED  Speed at point 2.\r\n");
-                        USBport.printf("         stop DELAY      Delay from trigger to full stop.\r\n");
-                        USBport.printf("\r\n");
-                        USBport.printf("    get                  Return current configuration\r\n");
-                        USBport.printf("    save                 Save configuration to eeprom\r\n");
-                        USBport.printf("    erase                Erase configuration from eeprom\r\n");
-                        USBport.printf("    reset                Reset the microcontroller\r\n");
-                        USBport.printf("    help                 Display this help message\r\n");
+                        USBport.printf(
+"Abrakabuki by ExMachina\r\n\
+    version: %s\r\n\r\n\
+available commands:\r\n\
+    set OPTION VALUE     Set the option to the desired value.\r\n\
+                         Integer and float are accepted.\r\n\
+                         DELAYs are in milliseconds, SPEEDs in percent.\r\n\
+         start DELAY     Delay from trigger to start.\r\n\
+         p1.time DELAY   Delay from trigger to point 1.\r\n\
+         p1.speed SPEED  Speed at point 1.\r\n\
+         p2.time DELAY   Delay from trigger to point 2.\r\n\
+         p2.speed SPEED  Speed at point 2.\r\n\
+         p3.time DELAY   Delay from trigger to point 3.\r\n\
+         p3.speed SPEED  Speed at point 3.\r\n\
+         stop DELAY      Delay from trigger to full stop.\r\n\
+\r\n\
+    status               Display status\r\n\
+    get                  Return current configuration\r\n\
+    save                 Save configuration to eeprom\r\n\
+    erase                Erase configuration from eeprom\r\n\
+    reset                Reset the microcontroller\r\n\
+    help                 Display this help message\r\n", ABK_VERSION);
                     } else if (cmd == "set") {
                         if (nargs > 1) {
                             USBport.printf("%s set to %d\r\n", opt_str, args);
@@ -555,8 +559,12 @@ static void ABK_serial_task(void) {
                         ABK_reset = true;
                     } else if (cmd == "version") {
                         USBport.printf("%s\r\n", ABK_VERSION);
+                    } else if (cmd == "status") {
+                        USBport.printf("status: 0x%x error: 0x%x\r\n", ABK_state, ABK_error);
+                    } else if (cmd == "") {
+                        // Don't do anything if cmd is empty
                     } else {
-                        USBport.printf("unrecognized command: %s. Type 'help' for help\r\n", cmd_buf);
+                        USBport.printf("unrecognized command: '%s'. Type 'help' for help\r\n", cmd_buf);
                     }
                 }
 
