@@ -30,7 +30,7 @@ Timer ABK_leds_timer;
 
 // Serial
 #if ABK_HAS_USBSERIAL
-Serial USBport(ISP_TXD, ISP_RXD);
+USBSerial USBport(0x1f00, 0x2012, 0x0001, false);
 #else
 Serial USBport(ISP_TXD, ISP_RXD);
 #endif
@@ -70,7 +70,9 @@ int main(void) {
     dir_fw = 0;
     dir_rw = 0;
 
+#if !ABK_HAS_USBSERIAL
     USBport.baud(115200);
+#endif
 
 #if ABK_TEST
     DigitalOut output1_1(OUTPUT1_1);
