@@ -60,10 +60,25 @@ int main(void) {
     ABK_set_motor_mode(ABK_MOTOR_DISABLED);
     ABK_set_speed(0);
 
+    brake = 0;
+    motor_ctl = 0;
+    dir_fw = 0;
+    dir_rw = 0;
+
     USBport.baud(115200);
 
-#if !ABK_TEST
-    ticker_leds.attach(&ABK_leds_task, 10);
+#if ABK_TEST
+    DigitalOut output1_1(OUTPUT1_1);
+    DigitalOut output1_2(OUTPUT1_2);
+    DigitalOut output1_3(OUTPUT1_3);
+    DigitalOut output1_4(OUTPUT1_4);
+
+    DigitalOut output2_1(OUTPUT2_1);
+    DigitalOut output2_2(OUTPUT2_2);
+    DigitalOut output2_3(OUTPUT2_3);
+    DigitalOut output2_4(OUTPUT2_4);
+#else
+    ticker_leds.attach_us(&ABK_leds_task, 50000);
 #endif
 
     wdog.kick(10); // First watchdog kick to trigger it
@@ -127,48 +142,29 @@ int main(void) {
 #endif
 
 #if ABK_TEST
-    for (int i=0; i<50; i++) {
-        led1 = !led1;
-        led2 = !led2;
+    uint16_t period = 0;
+    while (true) {
+        led1 = (period % 2 == 0) ? true : false;
+        led2 = (period % 4 == 0) ? true : false;
 
-        clutch = !clutch;
-        brake = !brake;
-        motor_ctl = !motor_ctl;
-        dir_fw = !dir_fw;
-        dir_rw = !dir_rw;
-        Thread::wait(100);
+        output1_1 = !output1_1;
+        output1_2 = !output1_2;
+        output1_3 = !output1_3;
+        output1_4 = !output1_4;
 
-        wdog.kick();
-    }
-    for (int i=0; i<100; i++) {
-        motor_ctl = (float) i / 100.0;
-        Thread::wait(50);
+        output2_1 = !output2_1;
+        output2_2 = !output2_2;
+        output2_3 = !output2_3;
+        output2_4 = !output2_4;
 
-        wdog.kick();
-    }
-    for (int i=100; i>0; i--) {
-        motor_ctl = (float) i / 100.0;
-        Thread::wait(50);
+        period++;
+        Thread::wait(2000);
 
         wdog.kick();
-    }
-
-    short test_data = 0;
-    bool test_ew = eeprom.write(0, (short)12);
-    bool test_er = eeprom.read(0, &test_data);
-
-    if (test_ew && test_er) {
-        led1 = 1;
-        brake = 1;
-        dir_fw = 1;
-    } else {
-        dir_fw = 1;
-        dir_rw = 1;
     }
 
 #elif ABK_MOTOR_TEST
     for (int i=0; i<100; i++) {
-        clutch = 0;
         brake = 0;
         ABK_set_speed(i);
         dir_fw = 1;
@@ -179,7 +175,6 @@ int main(void) {
     }
 
     for (int i=100; i>0; i--) {
-        clutch = 0;
         brake = 0;
         ABK_set_speed(i);
         dir_fw = 1;

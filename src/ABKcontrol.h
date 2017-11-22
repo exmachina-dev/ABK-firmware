@@ -24,7 +24,7 @@
 #define ABK_EEPROM_DATA_SIZE        (ABK_EEPROM_CONF_SIZE + 2)
 #define ABK_EEPROM_START_ADDRESS    (1)
 
-extern DigitalOut brake;
+extern bool brake;
 extern DigitalOut clutch;
 extern DigitalOut dir_fw;
 extern DigitalOut dir_rw;
