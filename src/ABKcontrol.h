@@ -70,9 +70,7 @@ typedef enum {
 
 typedef enum {
     ABK_DRUM_BRAKED = 0,
-    ABK_DRUM_FREEWHEEL,
-    ABK_DRUM_ENGAGED,
-    ABK_DRUM_FULLSTOP
+    ABK_DRUM_FREEWHEEL
 } ABK_drum_mode_t;
 
 typedef enum {
