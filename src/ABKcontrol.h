@@ -14,6 +14,7 @@
 
 #define ABK_MOT_MIN_FREQ            (2000.0)
 #define ABK_MOT_MAX_FREQ            (22000.0)
+#define ABK_SLOWFEED_SPEED          (6)
 
 #define ABK_CLUTCH_BRAKE_DELAY      (350)       // ms
 
@@ -23,6 +24,11 @@
 #define ABK_EEPROM_CONF_SIZE        (14)
 #define ABK_EEPROM_DATA_SIZE        (ABK_EEPROM_CONF_SIZE + 2)
 #define ABK_EEPROM_START_ADDRESS    (1)
+
+#define CHECK_FLAG(value, flag) ((value & flag) == flag)
+#define ADD_FLAG(value, flag) (value | flag)
+#define REMOVE_FLAG(value, flag) (value & ~flag)
+#define SWITCH_FLAG(value, flag, test) (test) ? ADD_FLAG(value, flag) : REMOVE_FLAG(value, flag)
 
 extern bool brake;
 extern DigitalOut clutch;
@@ -65,9 +71,19 @@ typedef enum {
     ABK_STATE_STANDBY = 0,
     ABK_STATE_NOT_CONFIGURED,
     ABK_STATE_CONFIGURED,
+    ABK_STATE_READY,
     ABK_STATE_RUN,
+    ABK_STATE_SLOWFEED,
     ABK_STATE_RESET,
 } ABK_state_t;
+
+typedef enum {
+    ABK_ERROR_NONE = 0,
+    ABK_ERROR_EMERGENCY_STOP    = 0x01,
+    ABK_ERROR_NOT_CONFIGURED    = 0x02,
+    ABK_ERROR_INVALID_CONFIG    = 0x04,
+    ABK_ERROR_VFD_ERROR         = 0x08,
+} ABK_error_t;
 
 typedef enum {
     ABK_DRUM_BRAKED = 0,

@@ -26,6 +26,7 @@ Ticker ticker_leds;
 #endif
 
 Timer ABK_timer;
+Timer ABK_leds_timer;
 
 // Serial
 #if ABK_HAS_USBSERIAL
@@ -42,8 +43,12 @@ AT24CXX_I2C eeprom(&i2c_eeprom, 0x50);
 
 Mutex ABK_config_mutex;
 ABK_config_t ABK_config;
-ABK_state_t ABK_state;
+ABK_state_t ABK_state = ABK_STATE_NOT_CONFIGURED;
+uint8_t ABK_error = ABK_ERROR_NONE;
+unsigned int EXM_previous_time[3];
+
 bool ABK_reset = false;
+uint8_t ABK_slowfeed = 0;
 
 #if !ABK_TEST
 Thread ABK_app_thread;
@@ -79,6 +84,7 @@ int main(void) {
     DigitalOut output2_4(OUTPUT2_4);
 #else
     ticker_leds.attach_us(&ABK_leds_task, 50000);
+    ABK_leds_timer.start();
 #endif
 
     wdog.kick(10); // First watchdog kick to trigger it
@@ -99,6 +105,7 @@ int main(void) {
     // get_eeprom data
     if (ABK_eeprom_read_config(&eeprom, &ABK_config)) { // get_eeprom data success
         ABK_state = ABK_STATE_CONFIGURED;
+        ABK_error = REMOVE_FLAG(ABK_error, ABK_ERROR_NOT_CONFIGURED);
         printf("Configured:\r\n");
         printf("state %d\r\n", ABK_config.state);
         printf("start %dms\r\n", ABK_config.start_time);
@@ -111,6 +118,7 @@ int main(void) {
                 printf("Valid config\r\n");
             } else {
                 ABK_state = ABK_STATE_NOT_CONFIGURED;
+                ABK_error = ADD_FLAG(ABK_error, ABK_ERROR_INVALID_CONFIG);
             }
         } else if (ABK_config.state == 0 || ABK_config.state == 255) {
             USBport.printf("Erasing!\r\n");
@@ -120,6 +128,7 @@ int main(void) {
         }
     } else {
         ABK_state = ABK_STATE_NOT_CONFIGURED;
+        ABK_error = ADD_FLAG(ABK_error, ABK_ERROR_NOT_CONFIGURED);
         printf("Not ABK_configured\r\n");
 #if ABK_SIMULATE
         ABK_config.state = 1;
@@ -222,9 +231,40 @@ int main(void) {
 #endif
 }
 
+void EXM_blink_led(DigitalOut led, uint8_t led_index, unsigned int interval, int time) {
+    if (interval == 0) {
+        led = 0;
+        return;
+    }
+
+    if ((time - EXM_previous_time[led_index]) >= interval){ 
+        led = !led;
+        EXM_previous_time[led_index]= time;
+    }
+}
 // Led update task
 static void ABK_leds_task(void) {
-    led2 = !led2;
+    int current_time = ABK_leds_timer.read_ms();
+    EXM_blink_led(led2, 0, ABK_state * 100, current_time);
+
+    if (ABK_error == ABK_ERROR_NONE)
+        switch (ABK_state) {
+            case ABK_STATE_READY:
+                led_sts = 1;
+                break;
+            case ABK_STATE_SLOWFEED:
+                EXM_blink_led(led_sts, 1, 500, current_time);
+                break;
+            case ABK_STATE_RUN:
+                EXM_blink_led(led_sts, 1, 250, current_time);
+                break;
+            default:
+                led_sts = 0;
+        }
+    else
+        led_sts = 0;
+
+    EXM_blink_led(led_err, 2, ABK_error * 100, current_time);
 }
 
 static void ABK_app_task(void) {
@@ -243,14 +283,70 @@ static void ABK_app_task(void) {
         printf("point2 %dms @%d\r\n", _config.p2.time, _config.p2.speed);
         printf("stop %dms\r\n", _config.stop_time);
 
-        ABK_state = ABK_STATE_RUN;
+        ABK_state = ABK_STATE_READY;
     }
 
     while (ABK_state != ABK_STATE_RESET) {
         Thread::wait(ABK_INTERVAL);
 
-        if (ABK_state == ABK_STATE_RUN || ABK_state == ABK_STATE_STANDBY) {
-            if (!_triggered && ac_trigger == 0 && drive_status == 1) {
+        if (ABK_state == ABK_STATE_NOT_CONFIGURED) {
+            ABK_error = ADD_FLAG(ABK_error, ABK_ERROR_INVALID_CONFIG);
+        } else {
+            ABK_error = REMOVE_FLAG(ABK_error, ABK_ERROR_INVALID_CONFIG);
+        }
+
+        if ((bool) !drive_status) { // Stop motor on VFD error
+            ABK_error = ADD_FLAG(ABK_error, ABK_ERROR_VFD_ERROR);
+            ABK_set_drum_mode(ABK_DRUM_BRAKED);
+            ABK_set_speed(0.0);
+            ABK_set_motor_mode(ABK_MOTOR_DISABLED);
+        } else {
+            ABK_error = REMOVE_FLAG(ABK_error, ABK_ERROR_VFD_ERROR);
+        }
+
+        if ((bool) !emergency_stop) { // Stop motor on emergency input
+            ABK_error = ADD_FLAG(ABK_error, ABK_ERROR_EMERGENCY_STOP);
+            ABK_set_drum_mode(ABK_DRUM_BRAKED);
+            ABK_set_speed(0.0);
+            ABK_set_motor_mode(ABK_MOTOR_DISABLED);
+        } else {
+            ABK_error = REMOVE_FLAG(ABK_error, ABK_ERROR_EMERGENCY_STOP);
+        }
+
+        if (ABK_error != ABK_ERROR_NONE) // Block here if we have any error.
+            continue;
+
+        if ((bool) slowfeed_fw_input || (bool) slowfeed_rw_input) { // Overrides default behavior for loading/unloading
+            ABK_state = ABK_STATE_SLOWFEED;
+            ABK_set_drum_mode(ABK_DRUM_FREEWHEEL);
+            if (slowfeed_fw_input)
+                ABK_set_motor_mode(ABK_MOTOR_FW);
+            else
+                ABK_set_motor_mode(ABK_MOTOR_RW);
+            ABK_set_speed(ABK_SLOWFEED_SPEED);
+            _triggered = false;
+            ABK_timer.reset();
+            continue;
+        } else if (ABK_slowfeed != 0) { // Overrides default behavior for loading/unloading (Serial command)
+            ABK_state = ABK_STATE_SLOWFEED;
+            ABK_set_drum_mode(ABK_DRUM_FREEWHEEL);
+            if (ABK_slowfeed == 1)
+                ABK_set_motor_mode(ABK_MOTOR_FW);
+            else
+                ABK_set_motor_mode(ABK_MOTOR_RW);
+            ABK_set_speed(ABK_SLOWFEED_SPEED);
+            _triggered = false;
+            ABK_timer.reset();
+            continue;
+        } else if (ABK_state == ABK_STATE_SLOWFEED) {
+            if ((bool) !slowfeed_fw_input && (bool) !slowfeed_rw_input)
+                ABK_state = (_triggered) ? ABK_STATE_STANDBY : ABK_STATE_READY;
+        }
+
+
+        if (ABK_state == ABK_STATE_RUN || ABK_state == ABK_STATE_READY) {
+            if (!_triggered && (ac_trigger == 0) && (ABK_error == ABK_ERROR_NONE)) {
+                ABK_state = ABK_STATE_RUN;
                 _triggered = true;
                 _trigger_time = ABK_timer.read_ms();    // Store and reset timer: This ensure the timer
                 ABK_timer.reset();                      // doesn't overflow after the ABK been trigered (undefined behaviour)
@@ -263,8 +359,8 @@ static void ABK_app_task(void) {
             }
 
 
-            if (ABK_state == ABK_STATE_RUN && _triggered) {
-                _stime = ABK_timer.read_ms(); // Update time since trigger
+            if (ABK_state == ABK_STATE_RUN) {
+                int _stime = ABK_timer.read_ms(); // Update time since trigger
                 led2 = !led2;
                 DEBUG_PRINTF("stime: %d \r\n", _stime);
 
@@ -296,6 +392,7 @@ static void ABK_app_task(void) {
                     DEBUG_PRINTF("T3 %f\r\n", rspeed);
                 }
                 else if (_stime >= _config.stop_time) {
+                    ABK_state = ABK_STATE_STANDBY;
                     ABK_set_speed(0);
                     ABK_set_drum_mode(ABK_DRUM_BRAKED);
                     ABK_set_motor_mode(ABK_MOTOR_DISABLED);
