@@ -114,12 +114,6 @@ bool ABK_eeprom_write_config(AT24CXX_I2C *eeprom, ABK_config_t *config) {
 }
 
 bool ABK_eeprom_erase_config(AT24CXX_I2C *eeprom) {
-    bool ret;
-    char zdata[ABK_EEPROM_DATA_SIZE];
-    for (int i=0; i<ABK_EEPROM_DATA_SIZE; i++)
-        zdata[i] = 1;
-
-    ret = eeprom->write(ABK_EEPROM_START_ADDRESS, zdata, ABK_EEPROM_DATA_SIZE);
 
     ABK_eeprom_t eedata;
     ABK_config_t config;
@@ -143,10 +137,7 @@ bool ABK_eeprom_erase_config(AT24CXX_I2C *eeprom) {
     DEBUG_PRINTF("\r\n");
 #endif
 
-    ret = eeprom->write(ABK_EEPROM_START_ADDRESS, eedata.raw, ABK_EEPROM_DATA_SIZE);
-
-    unsigned char rdata[ABK_EEPROM_DATA_SIZE];
-    eeprom->read(ABK_EEPROM_START_ADDRESS, rdata, ABK_EEPROM_DATA_SIZE);
+    bool ret = eeprom->write(ABK_EEPROM_START_ADDRESS, eedata.raw, ABK_EEPROM_DATA_SIZE);
 
     return ret;
 }
