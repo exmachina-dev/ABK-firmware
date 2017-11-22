@@ -111,6 +111,7 @@ int main(void) {
         printf("start %dms\r\n", ABK_config.start_time);
         printf("point1 %dms @%d\r\n", ABK_config.p1.time, ABK_config.p1.speed);
         printf("point2 %dms @%d\r\n", ABK_config.p2.time, ABK_config.p2.speed);
+        printf("point3 %dms @%d\r\n", ABK_config.p3.time, ABK_config.p3.speed);
         printf("stop %dms\r\n", ABK_config.stop_time);
         if (ABK_config.state == 1) {
             if (ABK_validate_config(&ABK_config)) {
@@ -143,6 +144,7 @@ int main(void) {
         DEBUG_PRINTF("start %dms\r\n", ABK_config.start_time);
         DEBUG_PRINTF("point1 %dms @%d\r\n", ABK_config.p1.time, ABK_config.p1.speed);
         DEBUG_PRINTF("point2 %dms @%d\r\n", ABK_config.p2.time, ABK_config.p2.speed);
+        DEBUG_PRINTF("point3 %dms @%d\r\n", ABK_config.p3.time, ABK_config.p3.speed);
         DEBUG_PRINTF("stop %dms\r\n", ABK_config.stop_time);
 #endif
     }
@@ -281,6 +283,7 @@ static void ABK_app_task(void) {
         printf("start %dms\r\n", _config.start_time);
         printf("point1 %dms @%d\r\n", _config.p1.time, _config.p1.speed);
         printf("point2 %dms @%d\r\n", _config.p2.time, _config.p2.speed);
+        printf("point3 %dms @%d\r\n", _config.p3.time, _config.p3.speed);
         printf("stop %dms\r\n", _config.stop_time);
 
         ABK_state = ABK_STATE_READY;
@@ -371,7 +374,7 @@ static void ABK_app_task(void) {
                     float rspeed = ABK_map(_config.start_time, _config.p1.time,
                            0, _config.p1.speed, _stime);
                     ABK_set_speed(rspeed);
-                    DEBUG_PRINTF("T1 %f\r\n", rspeed);
+                    DEBUG_PRINTF("T0 %f\r\n", rspeed);
                 }
                 else if (_stime >= _config.p1.time && _stime < _config.p2.time) {
                     ABK_set_drum_mode(ABK_DRUM_FREEWHEEL);
@@ -380,14 +383,23 @@ static void ABK_app_task(void) {
                     float rspeed = ABK_map(_config.p1.time, _config.p2.time,
                             _config.p1.speed, _config.p2.speed, _stime);
                     ABK_set_speed(rspeed);
-                    DEBUG_PRINTF("T2 %f\r\n", rspeed);
+                    DEBUG_PRINTF("T1 %f\r\n", rspeed);
                 }
-                else if (_stime >= _config.p2.time && _stime < _config.stop_time) {
+                else if (_stime >= _config.p2.time && _stime < _config.p3.time) {
                     ABK_set_drum_mode(ABK_DRUM_FREEWHEEL);
                     ABK_set_motor_mode(ABK_MOTOR_FW);
 
-                    float rspeed = ABK_map(_config.p2.time, _config.stop_time,
-                            _config.p2.speed, 0, _stime);
+                    float rspeed = ABK_map(_config.p2.time, _config.p3.time,
+                            _config.p2.speed, _config.p3.speed, _stime);
+                    ABK_set_speed(rspeed);
+                    DEBUG_PRINTF("T2 %f\r\n", rspeed);
+                }
+                else if (_stime >= _config.p3.time && _stime < _config.stop_time) {
+                    ABK_set_drum_mode(ABK_DRUM_FREEWHEEL);
+                    ABK_set_motor_mode(ABK_MOTOR_FW);
+
+                    float rspeed = ABK_map(_config.p3.time, _config.stop_time,
+                            _config.p3.speed, 0, _stime);
                     ABK_set_speed(rspeed);
                     DEBUG_PRINTF("T3 %f\r\n", rspeed);
                 }
@@ -489,6 +501,10 @@ static void ABK_serial_task(void) {
                                 tmp_config.p2.time = (uint16_t) args;
                             } else if (strcmp(opt_str, "p2.speed") == 0) {
                                 tmp_config.p2.speed = (uint16_t) args;
+                            } else if (strcmp(opt_str, "p3.time") == 0) {
+                                tmp_config.p3.time = (uint16_t) args;
+                            } else if (strcmp(opt_str, "p3.speed") == 0) {
+                                tmp_config.p3.speed = (uint16_t) args;
                             } else if (strcmp(opt_str, "stop") == 0) {
                                 tmp_config.stop_time = (uint16_t) args;
                             } else {
@@ -503,6 +519,7 @@ static void ABK_serial_task(void) {
                         USBport.printf("start %d\r\n", ABK_config.start_time);
                         USBport.printf("p1.time %d\r\np1.speed %d\r\n", ABK_config.p1.time, ABK_config.p1.speed);
                         USBport.printf("p2.time %d\r\np2.speed %d\r\n", ABK_config.p2.time, ABK_config.p2.speed);
+                        USBport.printf("p3.time %d\r\np3.speed %d\r\n", ABK_config.p3.time, ABK_config.p3.speed);
                         USBport.printf("stop %d\r\n", ABK_config.stop_time);
 
                         ABK_config_mutex.unlock();
@@ -510,6 +527,7 @@ static void ABK_serial_task(void) {
                         USBport.printf("start %d\r\n", tmp_config.start_time);
                         USBport.printf("p1.time %d\r\np1.speed %d\r\n", tmp_config.p1.time, tmp_config.p1.speed);
                         USBport.printf("p2.time %d\r\np2.speed %d\r\n", tmp_config.p2.time, tmp_config.p2.speed);
+                        USBport.printf("p3.time %d\r\np3.speed %d\r\n", tmp_config.p3.time, tmp_config.p3.speed);
                         USBport.printf("stop %d\r\n", tmp_config.stop_time);
                     } else if (cmd == "save") {
                         ABK_config_mutex.lock();

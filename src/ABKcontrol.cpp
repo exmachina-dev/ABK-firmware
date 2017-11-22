@@ -83,14 +83,17 @@ bool ABK_validate_config(ABK_config_t *config) {
 
     if ((config->start_time <= config->p1.time) &&
             (config->p1.time <= config->p2.time) &&
-            (config->p2.time <= config->stop_time))
+            (config->p2.time <= config->p3.time) &&
+            (config->p3.time <= config->stop_time))
         res += 1;
     if (config->p1.speed <= 100)
         res += 2;
     if (config->p2.speed <= 100)
         res += 4;
+    if (config->p3.speed <= 100)
+        res += 8;
 
-    return (res == (1 + 2 + 4));
+    return (res == (1 + 2 + 4 + 8));
 }
 
 bool ABK_eeprom_read_config(AT24CXX_I2C *eeprom, ABK_config_t *config) {
@@ -126,6 +129,8 @@ bool ABK_eeprom_erase_config(AT24CXX_I2C *eeprom) {
     config.p1.speed = 0;
     config.p2.time = 0;
     config.p2.speed = 0;
+    config.p3.time = 0;
+    config.p3.speed = 0;
     config.stop_time = 0;
     config.direction = 0;
 

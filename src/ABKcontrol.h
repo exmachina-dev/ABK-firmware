@@ -18,10 +18,10 @@
 
 #define ABK_CLUTCH_BRAKE_DELAY      (350)       // ms
 
-#define ABK_EEPROM_VERSION          (2)
+#define ABK_EEPROM_VERSION          (3)
 #define ABK_EEPROM_STATE_BLANK      (0)
 #define ABK_EEPROM_STATE_PRESENT    (1)
-#define ABK_EEPROM_CONF_SIZE        (14)
+#define ABK_EEPROM_CONF_SIZE        (18)
 #define ABK_EEPROM_DATA_SIZE        (ABK_EEPROM_CONF_SIZE + 2)
 #define ABK_EEPROM_START_ADDRESS    (1)
 
@@ -57,13 +57,14 @@ struct ABK_point_s {
 typedef struct ABK_point_s ABK_point_t;
 
 struct ABK_config_s {
-    uint8_t state;
-    uint16_t start_time;
-    ABK_point_t p1;
-    ABK_point_t p2;
-    uint16_t stop_time;
+    uint8_t state;              // 1
+    uint16_t start_time;        // 2
+    ABK_point_t p1;             // 4
+    ABK_point_t p2;             // 4
+    ABK_point_t p3;             // 4
+    uint16_t stop_time;         // 2
     uint8_t direction;          // 1
-} __attribute__((packed));
+} __attribute__((packed));      // Configuration size: 18
 
 typedef struct ABK_config_s ABK_config_t;
 
