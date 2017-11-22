@@ -18,8 +18,6 @@ Watchdog wdog;
 
 volatile uint32_t   ABK_timer1ms = 0U;   // variable increments each millisecond
 
-extern "C" void mbed_reset();
-
 #if !ABK_TEST
 Ticker ticker_sync;
 Ticker ticker_leds;
@@ -177,6 +175,7 @@ int main(void) {
     }
 
 #elif ABK_MOTOR_TEST
+
     for (int i=0; i<100; i++) {
         brake = 0;
         ABK_set_speed(i);
@@ -199,6 +198,7 @@ int main(void) {
 
     dir_fw = 0;
     dir_rw = 0;
+
 #else
 
     ABK_timer.start();
@@ -221,7 +221,7 @@ int main(void) {
 #endif
 
         if (ABK_reset == true) {
-            mbed_reset();
+            NVIC_SystemReset();
             break;
         }
 
@@ -229,7 +229,7 @@ int main(void) {
     }
 
     // Reset
-    mbed_reset();
+    NVIC_SystemReset();
 
     return 1;
 #endif
