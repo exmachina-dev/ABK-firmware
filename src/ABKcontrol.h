@@ -97,6 +97,12 @@ typedef enum {
     ABK_MOTOR_RW
 } ABK_motor_mode_t;
 
+typedef enum {
+    ABK_SLOWFEED_NONE = 0,
+    ABK_SLOWFEED_FORWARD,
+    ABK_SLOWFEED_REWIND
+} ABK_slowfeed_t;
+
 void ABK_set_drum_mode(ABK_drum_mode_t);
 void ABK_set_motor_mode(ABK_motor_mode_t);
 int ABK_set_speed(float speed);

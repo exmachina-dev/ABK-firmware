@@ -249,6 +249,7 @@ void EXM_blink_led(DigitalOut led, uint8_t led_index, unsigned int interval, int
 // Led update task
 static void ABK_leds_task(void) {
     int current_time = ABK_leds_timer.read_ms();
+    ABK_state_t last_state = ABK_STATE_CONFIGURED;
     EXM_blink_led(led2, 0, ABK_state * 100, current_time);
 
     if (ABK_error == ABK_ERROR_NONE)
@@ -321,31 +322,23 @@ static void ABK_app_task(void) {
         if (ABK_error != ABK_ERROR_NONE) // Block here if we have any error.
             continue;
 
-        if ((bool) slowfeed_fw_input || (bool) slowfeed_rw_input) { // Overrides default behavior for loading/unloading
+        if ((bool) slowfeed_fw_input || (bool) slowfeed_rw_input
+                || ABK_slowfeed != ABK_SLOWFEED_NONE) { // Overrides default behavior for loading/unloading
+            last_state = ABK_state;
             ABK_state = ABK_STATE_SLOWFEED;
             ABK_set_drum_mode(ABK_DRUM_FREEWHEEL);
-            if (slowfeed_fw_input)
+            if (slowfeed_fw_input || ABK_slowfeed == ABK_SLOWFEED_FORWARD)
                 ABK_set_motor_mode(ABK_MOTOR_FW);
-            else
-                ABK_set_motor_mode(ABK_MOTOR_RW);
-            ABK_set_speed(ABK_SLOWFEED_SPEED);
-            _triggered = false;
-            ABK_timer.reset();
-            continue;
-        } else if (ABK_slowfeed != 0) { // Overrides default behavior for loading/unloading (Serial command)
-            ABK_state = ABK_STATE_SLOWFEED;
-            ABK_set_drum_mode(ABK_DRUM_FREEWHEEL);
-            if (ABK_slowfeed == 1)
-                ABK_set_motor_mode(ABK_MOTOR_FW);
-            else
+            else if (slowfeed_rw_input || ABK_slowfeed == ABK_SLOWFEED_REWIND)
                 ABK_set_motor_mode(ABK_MOTOR_RW);
             ABK_set_speed(ABK_SLOWFEED_SPEED);
             _triggered = false;
             ABK_timer.reset();
             continue;
         } else if (ABK_state == ABK_STATE_SLOWFEED) {
-            if ((bool) !slowfeed_fw_input && (bool) !slowfeed_rw_input)
-                ABK_state = (_triggered) ? ABK_STATE_STANDBY : ABK_STATE_READY;
+            ABK_state = (last_state == ABK_STATE_READY) ? ABK_STATE_READY : ABK_STATE_STANDBY;
+            ABK_set_motor_mode(ABK_MOTOR_DISABLED);
+            ABK_set_speed(0.0);
         }
 
 
@@ -558,11 +551,11 @@ available commands:\r\n\
                     } else if (cmd == "reset") {
                         ABK_reset = true;
                     } else if (cmd == "slowfeed") {
-                        ABK_slowfeed = 0;
+                        ABK_slowfeed = ABK_SLOWFEED_NONE;
                         if (strcmp(opt_str, "forward") == 0) {
-                            ABK_slowfeed = 1;
+                            ABK_slowfeed = ABK_SLOWFEED_FORWARD;
                         } else if (strcmp(opt_str, "rewind") == 0) {
-                            ABK_slowfeed = 2;
+                            ABK_slowfeed = ABK_SLOWFEED_REWIND;
                         }
                     } else if (cmd == "version") {
                         USBport.printf("%s\r\n", ABK_VERSION);
