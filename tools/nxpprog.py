@@ -392,7 +392,7 @@ class nxpprog:
         self.serdev.timeout = 5
         # device wants Xon Xoff flow control
         if xonxoff:
-            self.serdev.setXonXoff(1)
+            self.serdev.xonxoff = 1
 
         self.cpu = cpu
 
@@ -402,7 +402,7 @@ class nxpprog:
         if control:
             self.isp_mode()
 
-        self.serdev.flushInput()
+        self.serdev.reset_input_buffer()
 
         self.connection_init(osc_freq)
 
@@ -428,16 +428,16 @@ class nxpprog:
 
     def reset(self, level):
         if self.reset_pin == "rts":
-            self.serdev.setRTS(level)
+            self.serdev.rts = level
         else:
-            self.serdev.setDTR(level)
+            self.serdev.dtr = level
 
     def int0(self, level):
         # if reset pin is rts int0 pin is dtr
         if self.reset_pin == "rts":
-            self.serdev.setDTR(level)
+            self.serdev.dtr = level
         else:
-            self.serdev.setRTS(level)
+            self.serdev.rts = level
 
     def connection_init(self, osc_freq):
         self.sync(osc_freq)
@@ -469,8 +469,8 @@ class nxpprog:
 
     def dev_readline(self, timeout=None):
         if timeout:
-            ot = self.serdev.getTimeout()
-            self.serdev.setTimeout(timeout)
+            ot = self.serdev.timeout
+            self.serdev.timeout = timeout
 
         line = b''
         while 1:
@@ -487,7 +487,7 @@ class nxpprog:
             line += c
 
         if timeout:
-            self.serdev.setTimeout(ot)
+            self.serdev.timeout = ot
 
         return line.decode("UTF-8")
 
