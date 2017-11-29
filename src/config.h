@@ -8,7 +8,7 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-#define ABK_VERSION         "v1.1"
+#define ABK_VERSION         "v2.0"
 #define ABK_HAS_LCD         0
 #define ABK_HAS_EEPROM      1
 #define ABK_HAS_USBSERIAL   1
