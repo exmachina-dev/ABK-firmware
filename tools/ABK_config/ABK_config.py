@@ -13,9 +13,9 @@ from serial.tools import list_ports
 
 import os.path
 
-from ABK_utils import ABK_STATE, ABK_ERROR, ABK_get_status_text, ABK_get_error_text
-from UI_utils import QGraphicsCircleItem, LinkedLines, Fabric, ABKFabric, OptionDialog
-from UI_utils import QTimeScene, QFabricScene
+from ABK.utils import ABK_STATE, ABK_ERROR, ABK_get_status_text, ABK_get_error_text
+from GUI.utils import QGraphicsCircleItem, LinkedLines, Fabric, ABKFabric, OptionDialog
+from GUI.utils import QTimeScene, QFabricScene
 from serial_utils import SerialThread, QSerial
 
 VERSION = '2.1'
@@ -41,7 +41,10 @@ class ABKConfig(QMainWindow):
 
     def initUi(self):
         self.setWindowTitle('ABK Configuration tool')
+
         _path = os.path.dirname(os.path.realpath(__file__))
+        self.OPTIONSFILE = _path + self.OPTIONSFILE
+
         self.main = uic.loadUi(_path + self.UIFILE)
         self.setCentralWidget(self.main)
 
