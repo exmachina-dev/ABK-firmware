@@ -14,9 +14,8 @@
 
 #define ABK_MOT_MIN_FREQ            (2000.0)
 #define ABK_MOT_MAX_FREQ            (22000.0)
-#define ABK_SLOWFEED_SPEED          (6)
 
-#define ABK_CLUTCH_BRAKE_DELAY      (350)       // ms
+#define ABK_SLOWFEED_SPEED          (6)
 
 #define ABK_EEPROM_VERSION          (3)
 #define ABK_EEPROM_STATE_BLANK      (0)
