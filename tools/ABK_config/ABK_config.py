@@ -512,7 +512,6 @@ https://github.com/exmachina-dev/ABK-firmware/tree/master/tools
 
         self.main.findChild(QPushButton, 'eraseButton').setEnabled(True)
 
-        print(self.connectedVersion)
         if self.connectedVersion and self.connectedVersion[0] >= 1:
             self.main.findChild(QPushButton, 'slowfeedForwardButton').setEnabled(True)
             self.main.findChild(QPushButton, 'slowfeedRewindButton').setEnabled(True)
