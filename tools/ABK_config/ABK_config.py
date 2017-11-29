@@ -44,7 +44,6 @@ class ABKConfig(QMainWindow):
 
         _path = os.path.dirname(os.path.realpath(__file__))
         self.OPTIONSFILE = _path + self.OPTIONSFILE
-
         self.main = uic.loadUi(_path + self.UIFILE)
         self.setCentralWidget(self.main)
 
