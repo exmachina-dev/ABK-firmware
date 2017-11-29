@@ -49,7 +49,7 @@ int ABK_set_speed(float speed) {
         period = 1000000 / ABK_MOT_MAX_FREQ;
 
     motor_ctl.period_us(period);
-    motor_ctl = dt - ((speed / 100) * 0.3);
+    motor_ctl = dt;
     return 0;
 }
 
