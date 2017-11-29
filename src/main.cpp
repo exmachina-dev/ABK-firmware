@@ -249,7 +249,6 @@ void EXM_blink_led(DigitalOut led, uint8_t led_index, unsigned int interval, int
 // Led update task
 static void ABK_leds_task(void) {
     int current_time = ABK_leds_timer.read_ms();
-    ABK_state_t last_state = ABK_STATE_CONFIGURED;
     EXM_blink_led(led2, 0, ABK_state * 100, current_time);
 
     if (ABK_error == ABK_ERROR_NONE)
@@ -275,6 +274,7 @@ static void ABK_leds_task(void) {
 static void ABK_app_task(void) {
     bool _triggered = false;
     int _trigger_time = 0U;
+    ABK_state_t last_state = ABK_STATE_CONFIGURED;
     ABK_config_t _config;
 
     if (ABK_state == ABK_STATE_CONFIGURED) {
