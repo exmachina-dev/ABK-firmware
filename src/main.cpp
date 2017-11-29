@@ -306,6 +306,10 @@ static void ABK_app_task(void) {
             ABK_set_drum_mode(ABK_DRUM_BRAKED);
             ABK_set_speed(0.0);
             ABK_set_motor_mode(ABK_MOTOR_DISABLED);
+
+            if (_triggered) {
+                ABK_state = ABK_STATE_STANDBY;
+            }
         } else {
             ABK_error = REMOVE_FLAG(ABK_error, ABK_ERROR_VFD_ERROR);
         }
@@ -315,6 +319,10 @@ static void ABK_app_task(void) {
             ABK_set_drum_mode(ABK_DRUM_BRAKED);
             ABK_set_speed(0.0);
             ABK_set_motor_mode(ABK_MOTOR_DISABLED);
+
+            if (_triggered) {
+                ABK_state = ABK_STATE_STANDBY;
+            }
         } else {
             ABK_error = REMOVE_FLAG(ABK_error, ABK_ERROR_EMERGENCY_STOP);
         }
