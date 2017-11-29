@@ -25,6 +25,10 @@
 #include "AT24Cxx_I2C.h"
 #endif
 
+#if ABK_HAS_USBSERIAL
+#include "USBSerial.h"
+#endif
+
 #if defined(ABK_DEBUG) && (ABK_DEBUG != 0)
 #define DEBUG_PRINTF(...) (printf(__VA_ARGS__))
 #else
