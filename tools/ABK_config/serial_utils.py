@@ -15,6 +15,7 @@ from PyQt5.QtCore import pyqtSlot, pyqtSignal, QTimer
 
 import threading
 import time
+import serial
 
 class SerialThread(threading.Thread):
     def __init__(self, *args, **kwargs):

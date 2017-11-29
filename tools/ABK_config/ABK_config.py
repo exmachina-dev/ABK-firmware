@@ -8,10 +8,9 @@ from PyQt5.QtCore import pyqtSlot, pyqtSignal, QTimer
 
 import PyQt5.uic as uic
 
-import serial
-from serial.tools import list_ports
-
+import time
 import os.path
+from serial.tools import list_ports
 
 from ABK.utils import ABK_STATE, ABK_ERROR, ABK_get_status_text, ABK_get_error_text
 from GUI.utils import QGraphicsCircleItem, LinkedLines, Fabric, ABKFabric, OptionDialog
@@ -201,7 +200,8 @@ class ABKConfig(QMainWindow):
         try:
             self._serial_object = QSerial(self)
             self._serial_object.open(serial_kwargs=k)
-            QTimer.singleShot(500, partial(self._serial_object.dataAvailable.connect, self.parseSerialData))
+            self._serial_object.dataAvailable.connect(self.parseSerialData)
+
             QTimer.singleShot(500, partial(self.serialSend, b'version\n'))
         except Exception as e:
             self.setStatusMessage('Unable to connect: {!s}'.format(e))
@@ -316,19 +316,20 @@ class ABKConfig(QMainWindow):
             return
 
         self.setStatusMessage('Writting config to device...')
+        self.disableActions()
 
         i, j = 0, len(self.getCurrentConfig())
         for k, v in self.getCurrentConfig().items():
             data = 'set {} {:d}'.format(k, v).encode() + b'\n'
-            self.setStatusMessage('Writting config to device... {:d}%'.format(int(i/j*100)))
-            self.serialSend(data)
-            time.sleep(0.5)
+            QTimer.singleShot(500*i, partial(self.setStatusMessage, 'Writting config to device... {:d}%'.format(int(i/j*100))))
+            QTimer.singleShot(500*i, partial(self.serialSend, data))
 
             i += 1
 
-        self.serialSend(b'save\n')
-        QTimer.singleShot(100, self.doDeviceReset)
+        QTimer.singleShot((500*i) + 100, partial(self.serialSend, b'save\n'))
+        QTimer.singleShot((500*i) + 200, self.doDeviceReset)
         self.setStatusMessage('Config written to device.')
+        self.enableActions()
 
     def doDeviceReset(self):
         if self.connectedVersion and self.connectedVersion[0] >= 2 and self.connectedVersion[1] >= 0:
@@ -473,7 +474,7 @@ https://github.com/exmachina-dev/ABK-firmware/tree/master/tools
 
     def serialPort(self, text):
         if text:
-            self._serialPort = text
+            self._serial_port = text
 
     def serialBaud(self, text):
         if text:
