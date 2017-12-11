@@ -4,6 +4,6 @@
 [submodule "lib/AT24Cxx_I2C"]
 	path = lib/AT24Cxx_I2C
 	url = git@git.exmachina.fr:/libAT24Cxx_I2C.git
-[submodule "tools\\nxp-flasher"]
-	path = tools\\nxp-flasher
+[submodule "tools/nxp-flasher"]
+	path = tools/nxp-flasher
 	url = git@git.exmachina.fr:tools/nxp-flasher.git
