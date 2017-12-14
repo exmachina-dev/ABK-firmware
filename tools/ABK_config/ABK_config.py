@@ -99,6 +99,9 @@ class ABKConfig(QMainWindow):
         self.fabricSurface = self.main.findChild(QDoubleSpinBox, 'fabricSurfaceDoubleSpinBox')
         self.fabricLength = self.main.findChild(QDoubleSpinBox, 'fabricLengthDoubleSpinBox')
 
+        self.fabricGrammage = self.main.findChild(QDoubleSpinBox, 'fabricGrammageDoubleSpinBox')
+        self.fabricWeight = self.main.findChild(QDoubleSpinBox, 'fabricWeightDoubleSpinBox')
+
         self.cableLength = self.main.findChild(QDoubleSpinBox, 'cableLengthDoubleSpinBox')
         self.pickupPointX = self.main.findChild(QSpinBox, 'pickupPointXSpinBox')
         self.pickupPointY = self.main.findChild(QSpinBox, 'pickupPointYSpinBox')
@@ -137,6 +140,8 @@ class ABKConfig(QMainWindow):
         self.fabricHeight.valueChanged[float].connect(self.fabricScene.fabricPreview.setHeight)
         self.fabricHeight.valueChanged[float].connect(self.fabric.setHeight)
 
+        self.fabricGrammage.valueChanged[float].connect(self.fabric.setGrammage)
+
         self.cableLength.valueChanged[float].connect(self.fabric.setCableLength)
         self.pickupPointX.valueChanged[int].connect(self.fabricScene.fabricPreview.setPickupPointX)
         self.pickupPointX.valueChanged[int].connect(self.fabric.setPickupPointX)
@@ -145,6 +150,8 @@ class ABKConfig(QMainWindow):
 
         self.fabric.surfaceChanged.connect(self.fabricSurface.setValue)
         self.fabric.lengthChanged.connect(self.fabricLength.setValue)
+
+        self.fabric.weightChanged.connect(self.fabricWeight.setValue)
 
         self.nominalSpeed.valueChanged[float].connect(self.fabric.setNominalSpeed)
         self.accelTime.valueChanged[int].connect(self.fabric.setAccelTime)
@@ -417,8 +424,9 @@ https://github.com/exmachina-dev/ABK-firmware/tree/master/tools
     def doFabricConfig(self, cfg=None):
         if not cfg:
             cfg = {}
-        self.fabric.maximum_speed = float(cfg.get('maximum_speed',
-            self._maximum_speed or 10))
+        #self.fabric.maximum_speed = float(cfg.get('maximum_speed',
+            #self._maximum_speed or 7.5))
+        self.fabric.maximum_speed = 7.5
         self.fabric.speed_factor = float(cfg.get('speed_factor',
             self._speed_factor or 3.5))
 
@@ -467,7 +475,8 @@ https://github.com/exmachina-dev/ABK-firmware/tree/master/tools
     def getCurrentOptions(self):
         cfg = {}
         cfg['serial_baud'] = self._serial_baud or 115200
-        cfg['maximum_speed'] = self._maximum_speed or 10
+        #cfg['maximum_speed'] = self._maximum_speed or 7.5
+        cfg['maximum_speed'] = 7.5
         cfg['speed_factor'] = self._speed_factor or 3.5
 
         return cfg

@@ -46,11 +46,13 @@ class OptionDialog(QDialog):
         self.maximumSpeed = QDoubleSpinBox(self)
         self.maximumSpeed.setValue(float(opts.get('maximum_speed', 0)))
         l = QLabel('Maximum Speed', self)
+        self.maximumSpeed.setEnabled(False)
         layout.addRow(l, self.maximumSpeed)
 
         self.speedFactor = QDoubleSpinBox(self)
         self.speedFactor.setValue(float(opts.get('speed_factor', 0)))
         l = QLabel('Speed Factor', self)
+        self.speedFactor.setEnabled(False)
         layout.addRow(l, self.speedFactor)
 
         # OK and Cancel buttons
@@ -464,6 +466,7 @@ class QFabricScene(QGraphicsScene):
 
 class ABKFabric(QObject):
     surfaceChanged = pyqtSignal(float)
+    weightChanged = pyqtSignal(float)
     lengthChanged = pyqtSignal(float)
     accelerationChanged = pyqtSignal(float)
     decelerationChanged = pyqtSignal(float)
@@ -472,6 +475,7 @@ class ABKFabric(QObject):
     def __init__(self, *args, **kwargs):
         self._width = kwargs.pop('width', 0)
         self._height = kwargs.pop('height', 0)
+        self._weight = kwargs.pop('grammage', 0)
         self._cable_length = kwargs.pop('cable_length', 0)
         self._pickup_point_x = kwargs.pop('pickup_point_x', 0.5)
         self._pickup_point_y = kwargs.pop('pickup_point_y', 0.5)
@@ -491,6 +495,14 @@ class ABKFabric(QObject):
     @property
     def height(self):
         return self._height
+
+    @property
+    def grammage(self):
+        return self._grammage
+
+    @property
+    def weight(self):
+        return float(self.grammage * self.surface / 1000)
 
     @property
     def cable_length(self):
@@ -617,6 +629,12 @@ class ABKFabric(QObject):
         self.lengthChanged.emit(self.length)
         self.profileChanged.emit(self.time_profile)
 
+    @grammage.setter
+    def grammage(self, gr):
+        self._grammage = max(0, float(gr))
+        self.weightChanged.emit(self.weight)
+        self.profileChanged.emit(self.time_profile)
+
     @cable_length.setter
     def cable_length(self, cb):
         self._cable_length = max(0, float(cb))
@@ -680,6 +698,10 @@ class ABKFabric(QObject):
     @pyqtSlot(float)
     def setHeight(self, h):
         self.height = h
+
+    @pyqtSlot(float)
+    def setGrammage(self, gr):
+        self.grammage = gr
 
     @pyqtSlot(float)
     def setCableLength(self, cb):
