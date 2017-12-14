@@ -414,9 +414,8 @@ https://github.com/exmachina-dev/ABK-firmware/tree/master/tools
     def doFabricConfig(self, cfg=None):
         if not cfg:
             cfg = {}
-        #self.fabric.maximum_speed = float(cfg.get('maximum_speed',
-            #self._maximum_speed or 7.5))
-        self.fabric.maximum_speed = 7.5
+        self.fabric.maximum_speed = float(cfg.get('maximum_speed',
+            self._maximum_speed or 7.5))
         self.fabric.speed_factor = float(cfg.get('speed_factor',
             self._speed_factor or 3.5))
 
@@ -469,8 +468,7 @@ https://github.com/exmachina-dev/ABK-firmware/tree/master/tools
     def getCurrentOptions(self):
         cfg = {}
         cfg['serial_baud'] = self._serial_baud or 115200
-        #cfg['maximum_speed'] = self._maximum_speed or 7.5
-        cfg['maximum_speed'] = 7.5
+        cfg['maximum_speed'] = self._maximum_speed or 7.5
         cfg['speed_factor'] = self._speed_factor or 3.5
         cfg['maximum_surface'] = self._maximum_surface or 100.0
         cfg['maximum_weight'] = self._maximum_weight or 15
