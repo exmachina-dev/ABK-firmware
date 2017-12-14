@@ -96,7 +96,7 @@ class ABKConfig(QMainWindow):
         self.fabricSurface = self.main.findChild(QDoubleSpinBox, 'fabricSurfaceDoubleSpinBox')
         self.fabricLength = self.main.findChild(QDoubleSpinBox, 'fabricLengthDoubleSpinBox')
 
-        self.fabricGrammage = self.main.findChild(QDoubleSpinBox, 'fabricGrammageDoubleSpinBox')
+        self.fabricDensity = self.main.findChild(QDoubleSpinBox, 'fabricDensityDoubleSpinBox')
         self.fabricWeight = self.main.findChild(QDoubleSpinBox, 'fabricWeightDoubleSpinBox')
 
         self.cableLength = self.main.findChild(QDoubleSpinBox, 'cableLengthDoubleSpinBox')
@@ -140,7 +140,7 @@ class ABKConfig(QMainWindow):
         self.fabricHeight.valueChanged[float].connect(self.fabricScene.fabricPreview.setHeight)
         self.fabricHeight.valueChanged[float].connect(self.fabric.setHeight)
 
-        self.fabricGrammage.valueChanged[float].connect(self.fabric.setGrammage)
+        self.fabricDensity.valueChanged[float].connect(self.fabric.setDensity)
 
         self.cableLength.valueChanged[float].connect(self.fabric.setCableLength)
         self.pickupPointX.valueChanged[int].connect(self.fabricScene.fabricPreview.setPickupPointX)
