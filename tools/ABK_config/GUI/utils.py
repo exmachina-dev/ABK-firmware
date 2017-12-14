@@ -499,10 +499,6 @@ class ABKFabric(QObject):
         return self._grammage
 
     @property
-    def weight(self):
-        return float(self.grammage * self.surface / 1000)
-
-    @property
     def cable_length(self):
         return self._cable_length
 
@@ -517,6 +513,10 @@ class ABKFabric(QObject):
     @property
     def surface(self):
         return float(self.width * self.height)
+
+    @property
+    def weight(self):
+        return float(self.grammage * self.surface / 1000)
 
     @property
     def length(self):
