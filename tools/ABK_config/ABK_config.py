@@ -65,6 +65,9 @@ class ABKConfig(QMainWindow):
         aboutAction = self.menuBar().addAction('About')
         aboutAction.triggered.connect(self.doAbout)
 
+        # Define a QPalette to hilight out of bounds values
+        # self._warningPalette = QPalette
+
         self.doOptionLoad()
 
         self.setStatusMessage('Disconnected')
