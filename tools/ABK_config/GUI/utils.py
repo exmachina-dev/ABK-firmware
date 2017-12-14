@@ -473,7 +473,7 @@ class ABKFabric(QObject):
     def __init__(self, *args, **kwargs):
         self._width = kwargs.pop('width', 0)
         self._height = kwargs.pop('height', 0)
-        self._weight = kwargs.pop('grammage', 0)
+        self._weight = kwargs.pop('density', 0)
         self._cable_length = kwargs.pop('cable_length', 0)
         self._pickup_point_x = kwargs.pop('pickup_point_x', 0.5)
         self._pickup_point_y = kwargs.pop('pickup_point_y', 0.5)
@@ -495,8 +495,8 @@ class ABKFabric(QObject):
         return self._height
 
     @property
-    def grammage(self):
-        return self._grammage
+    def density(self):
+        return self._density
 
     @property
     def cable_length(self):
@@ -516,7 +516,7 @@ class ABKFabric(QObject):
 
     @property
     def weight(self):
-        return float(self.grammage * self.surface / 1000)
+        return float(self.density * self.surface / 1000)
 
     @property
     def length(self):
@@ -627,9 +627,9 @@ class ABKFabric(QObject):
         self.lengthChanged.emit(self.length)
         self.profileChanged.emit(self.time_profile)
 
-    @grammage.setter
-    def grammage(self, gr):
-        self._grammage = max(0, float(gr))
+    @density.setter
+    def density(self, de):
+        self._density = max(0, float(de))
         self.weightChanged.emit(self.weight)
         self.profileChanged.emit(self.time_profile)
 
@@ -698,8 +698,8 @@ class ABKFabric(QObject):
         self.height = h
 
     @pyqtSlot(float)
-    def setGrammage(self, gr):
-        self.grammage = gr
+    def setDensity(self, de):
+        self.density = de
 
     @pyqtSlot(float)
     def setCableLength(self, cb):
