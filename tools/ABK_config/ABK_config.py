@@ -83,9 +83,6 @@ class ABKConfig(QMainWindow):
 
         self.graphPoints = list()
 
-        self.fabric = ABKFabric()
-        self.doFabricConfig()
-
         for i in range(self.NTIMEPOINTS + 1):
             self.graphPoints.append((
                 self.main.findChild(QSpinBox, 'x%dSpinBox' % i),
@@ -109,6 +106,9 @@ class ABKConfig(QMainWindow):
         self.acceleration = self.main.findChild(QDoubleSpinBox, 'accelerationDoubleSpinBox')
         self.decelTime = self.main.findChild(QSpinBox, 'decelerationTimeSpinBox')
         self.deceleration = self.main.findChild(QDoubleSpinBox, 'decelerationDoubleSpinBox')
+
+        self.fabric = ABKFabric()
+        self.doFabricConfig()
 
         self.initPreview()
 
@@ -418,6 +418,9 @@ https://github.com/exmachina-dev/ABK-firmware/tree/master/tools
         self.fabric.maximum_speed = 7.5
         self.fabric.speed_factor = float(cfg.get('speed_factor',
             self._speed_factor or 3.5))
+
+        self.nominalSpeed.setMinimum(0)
+        self.nominalSpeed.setMaximum(self.fabric.maximum_speed)
 
     def doQuit(self):
         self.doOptionSave()
