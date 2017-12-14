@@ -46,13 +46,11 @@ class OptionDialog(QDialog):
         self.maximumSpeed = QDoubleSpinBox(self)
         self.maximumSpeed.setValue(float(opts.get('maximum_speed', 0)))
         l = QLabel('Maximum Speed', self)
-        self.maximumSpeed.setEnabled(False)
         layout.addRow(l, self.maximumSpeed)
 
         self.speedFactor = QDoubleSpinBox(self)
         self.speedFactor.setValue(float(opts.get('speed_factor', 0)))
         l = QLabel('Speed Factor', self)
-        self.speedFactor.setEnabled(False)
         layout.addRow(l, self.speedFactor)
 
         # OK and Cancel buttons

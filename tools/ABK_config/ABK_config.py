@@ -51,8 +51,6 @@ class ABKConfig(QMainWindow):
         openAction = fileMenu.addAction('Load from file')
         saveAction = fileMenu.addAction('Save to file')
         fileMenu.addSeparator()
-        optionAction = fileMenu.addAction('Options')
-        fileMenu.addSeparator()
         quitAction = fileMenu.addAction('Quit')
 
         openAction.setShortcut('Ctrl+O')
@@ -62,7 +60,6 @@ class ABKConfig(QMainWindow):
 
         openAction.triggered.connect(self.doOpen)
         saveAction.triggered.connect(self.doSave)
-        optionAction.triggered.connect(self.doOption)
         quitAction.triggered.connect(self.doQuit)
 
         aboutAction = self.menuBar().addAction('About')
@@ -392,14 +389,6 @@ Copyright ExMachina 2017 — Released under MIT license
 Source code cound be found on Github at
 https://github.com/exmachina-dev/ABK-firmware/tree/master/tools
         ''', QMessageBox.Ok)
-
-    def doOption(self):
-        cfg, o = OptionDialog.getOptions(self)
-        if o:
-            self.serialBaud(cfg['serial_baud'])
-            self._maximum_speed = cfg['maximum_speed']
-            self._speed_factor = cfg['speed_factor']
-            self.configChanged.emit(cfg)
 
     def doOptionLoad(self):
         try:
