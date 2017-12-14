@@ -161,7 +161,8 @@ class ABKConfig(QMainWindow):
         self.fabric.profileChanged.connect(self.setCurrentConfig)
         self.configChanged.connect(self.doFabricConfig)
 
-        # self.fabric.surfaceChanged.connect(self._surfaceCheck)
+        self.fabric.surfaceChanged.connect(self._surfaceCheck)
+        self.fabric.weightChanged.connect(self._weightCheck)
 
 
     def initSerialCommands(self):
@@ -458,7 +459,8 @@ https://github.com/exmachina-dev/ABK-firmware/tree/master/tools
         return cfg
 
     def setCurrentOptions(self, cfg):
-        opts = ('serial_baud', 'maximum_speed', 'speed_factor', 'max_surface',)
+        opts = ('serial_baud', 'maximum_speed', 'speed_factor',
+                'maximum_surface', 'maximum_weight',)
 
         for k, v in cfg.items():
             if k in opts:
@@ -470,6 +472,8 @@ https://github.com/exmachina-dev/ABK-firmware/tree/master/tools
         #cfg['maximum_speed'] = self._maximum_speed or 7.5
         cfg['maximum_speed'] = 7.5
         cfg['speed_factor'] = self._speed_factor or 3.5
+        cfg['maximum_surface'] = self._maximum_surface or 100.0
+        cfg['maximum_weight'] = self._maximum_weight or 15
 
         return cfg
 
@@ -517,6 +521,12 @@ https://github.com/exmachina-dev/ABK-firmware/tree/master/tools
             self.main.findChild(QPushButton, 'slowfeedForwardButton').setEnabled(True)
             self.main.findChild(QPushButton, 'slowfeedRewindButton').setEnabled(True)
             self.main.findChild(QPushButton, 'statusButton').setEnabled(True)
+
+    def _surfaceCheck(self, surface, paint=True):
+        pass
+
+    def _weightCheck(self, weight, paint=True):
+        pass
 
 
 if __name__ == '__main__':
