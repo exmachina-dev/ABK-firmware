@@ -544,7 +544,17 @@ https://github.com/exmachina-dev/ABK-firmware/tree/master/tools
 
 
     def _weightCheck(self, weight, paint=True):
-        pass
+        is_ok = False
+        if 0 <= weight <= self._maximum_weight:
+            is_ok = True
+
+        if paint:
+            if is_ok:
+                self.fabricWeight.setStyleSheet("")
+            else:
+                self.fabricWeight.setStyleSheet("background-color : red ; color : black")
+        else:
+            return is_ok
 
 
 if __name__ == '__main__':
