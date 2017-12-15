@@ -473,7 +473,7 @@ class ABKFabric(QObject):
     def __init__(self, *args, **kwargs):
         self._width = kwargs.pop('width', 0)
         self._height = kwargs.pop('height', 0)
-        self._weight = kwargs.pop('density', 0)
+        self._density = kwargs.pop('density', 0)
         self._cable_length = kwargs.pop('cable_length', 0)
         self._pickup_point_x = kwargs.pop('pickup_point_x', 0.5)
         self._pickup_point_y = kwargs.pop('pickup_point_y', 0.5)
@@ -618,6 +618,7 @@ class ABKFabric(QObject):
         self._width = max(0, float(w))
         self.surfaceChanged.emit(self.surface)
         self.lengthChanged.emit(self.length)
+        self.weightChanged.emit(self.weight)
         self.profileChanged.emit(self.time_profile)
 
     @height.setter
@@ -625,6 +626,7 @@ class ABKFabric(QObject):
         self._height = max(0, float(h))
         self.surfaceChanged.emit(self.surface)
         self.lengthChanged.emit(self.length)
+        self.weightChanged.emit(self.weight)
         self.profileChanged.emit(self.time_profile)
 
     @density.setter
