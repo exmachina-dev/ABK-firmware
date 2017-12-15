@@ -633,7 +633,6 @@ class ABKFabric(QObject):
     def density(self, de):
         self._density = max(0, float(de))
         self.weightChanged.emit(self.weight)
-        self.profileChanged.emit(self.time_profile)
 
     @cable_length.setter
     def cable_length(self, cb):

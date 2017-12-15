@@ -421,9 +421,13 @@ https://github.com/exmachina-dev/ABK-firmware/tree/master/tools
             self._maximum_speed or 7.5))
         self.fabric.speed_factor = float(cfg.get('speed_factor',
             self._speed_factor or 3.5))
+        self.fabric.minimum_acceltime = float(cfg.get('minimum_acceltime',
+            self._minimum_acceltime or 200.0))
 
         self.nominalSpeed.setMinimum(0)
         self.nominalSpeed.setMaximum(self.fabric.maximum_speed)
+        self.accelTime.setMinimum(self.fabric.minimum_acceltime)
+        self.decelTime.setMinimum(self.fabric.minimum_acceltime)
 
     def doQuit(self):
         self.doOptionSave()
@@ -462,7 +466,7 @@ https://github.com/exmachina-dev/ABK-firmware/tree/master/tools
 
     def setCurrentOptions(self, cfg):
         opts = ('serial_baud', 'maximum_speed', 'speed_factor',
-                'maximum_surface', 'maximum_weight',)
+                'maximum_surface', 'maximum_weight', 'minimum_acceltime', )
 
         for k, v in cfg.items():
             if k in opts:
@@ -473,6 +477,7 @@ https://github.com/exmachina-dev/ABK-firmware/tree/master/tools
         self._maximum_speed = float(self._maximum_speed)
         self._maximum_surface = float(self._maximum_surface)
         self._maximum_weight = float(self._maximum_weight)
+        self._minimum_acceltime = float(self._minimum_acceltime)
 
     def getCurrentOptions(self):
         cfg = {}
@@ -481,6 +486,7 @@ https://github.com/exmachina-dev/ABK-firmware/tree/master/tools
         cfg['speed_factor'] = self._speed_factor or 3.5
         cfg['maximum_surface'] = self._maximum_surface or 100.0
         cfg['maximum_weight'] = self._maximum_weight or 15
+        cfg['minimum_acceltime'] = self._minimum_acceltime or 200.0
 
         return cfg
 
