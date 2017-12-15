@@ -468,6 +468,12 @@ https://github.com/exmachina-dev/ABK-firmware/tree/master/tools
             if k in opts:
                 setattr(self, '_' + k, v)
 
+        self._serial_baud = float(self._serial_baud)
+        self._speed_factor = float(self._speed_factor)
+        self._maximum_speed = float(self._maximum_speed)
+        self._maximum_surface = float(self._maximum_surface)
+        self._maximum_weight = float(self._maximum_weight)
+
     def getCurrentOptions(self):
         cfg = {}
         cfg['serial_baud'] = self._serial_baud or 115200
@@ -524,7 +530,18 @@ https://github.com/exmachina-dev/ABK-firmware/tree/master/tools
             self.main.findChild(QPushButton, 'statusButton').setEnabled(True)
 
     def _surfaceCheck(self, surface, paint=True):
-        pass
+        is_ok = False
+        if 0 <= surface <= self._maximum_surface:
+            is_ok = True
+
+        if paint:
+            if is_ok:
+                self.fabricSurface.setStyleSheet("")
+            else:
+                self.fabricSurface.setStyleSheet("background-color : red ; color : black")
+        else:
+            return is_ok
+
 
     def _weightCheck(self, weight, paint=True):
         pass
