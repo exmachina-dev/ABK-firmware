@@ -65,9 +65,6 @@ class ABKConfig(QMainWindow):
         aboutAction = self.menuBar().addAction('About')
         aboutAction.triggered.connect(self.doAbout)
 
-        # Define a QPalette to hilight out of bounds values
-        # self._warningPalette = QPalette
-
         self.doOptionLoad()
 
         self.setStatusMessage('Disconnected')
@@ -571,9 +568,8 @@ https://github.com/exmachina-dev/ABK-firmware/tree/master/tools
                 self.fabricSurface.setStyleSheet("")
             else:
                 self.fabricSurface.setStyleSheet("background-color : red ; color : black")
-        
+
         return is_ok
-        
 
     def _weightCheck(self, weight, paint=True):
         is_ok = False
@@ -585,7 +581,7 @@ https://github.com/exmachina-dev/ABK-firmware/tree/master/tools
                 self.fabricWeight.setStyleSheet("")
             else:
                 self.fabricWeight.setStyleSheet("background-color : red ; color : black")
-        
+
         return is_ok
 
 

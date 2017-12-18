@@ -451,7 +451,6 @@ class QFabricScene(QGraphicsScene):
         self.parentView.scale(2.0, 2.0)
 
         self.fabricPreview = Fabric(width=0, height=0, pickup_point=True, scale=10)
-        # self.fabricSizeText = QText(
 
         self.addItem(self.fabricPreview)
 
@@ -459,7 +458,6 @@ class QFabricScene(QGraphicsScene):
 
     def updateView(self, *args):
         self.parentView.fitInView(self.fabricPreview.boundingRect(), Qt.KeepAspectRatio)
-
 
 
 class ABKFabric(QObject):
