@@ -328,10 +328,9 @@ class ABKConfig(QMainWindow):
 
         surface_status = self._surfaceCheck(surface)
         weight_status = self._weightCheck(weight)
-
         approve = QMessageBox.Yes
 
-        if not surface_status or weight_status:
+        if surface_status == False or weight_status == False:
             approve = QMessageBox.question(self,'Confirmation',
                 "Surface and/or weight exceeds maximum capicity, do you want to continue (not recommended)?",
                 QMessageBox.Yes | QMessageBox.No)
@@ -564,8 +563,10 @@ https://github.com/exmachina-dev/ABK-firmware/tree/master/tools
             else:
                 self.fabricSurface.setStyleSheet("background-color : red ; color : black")
         else:
-            return is_ok
-
+            pass
+        
+        return is_ok
+        
 
     def _weightCheck(self, weight, paint=True):
         is_ok = False
@@ -578,7 +579,9 @@ https://github.com/exmachina-dev/ABK-firmware/tree/master/tools
             else:
                 self.fabricWeight.setStyleSheet("background-color : red ; color : black")
         else:
-            return is_ok
+            pass
+        
+        return is_ok
 
 
 if __name__ == '__main__':
