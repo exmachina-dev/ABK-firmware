@@ -20,6 +20,7 @@ ABK_STATE = {
         6: 'RESET',
         }
 
+
 ABK_ERROR = {
         0x01: 'EMERGENCY_STOP',
         0x02: 'NOT_CONFIGURED',
@@ -27,10 +28,12 @@ ABK_ERROR = {
         0x08: 'VFD_ERROR',
         }
 
+
 def ABK_get_status_text(status_code):
     if not isinstance(status_code, int):
         status_code = int(status_code, 16)
     return '0x{:x} - {}'.format(status_code, ABK_STATE.get(status_code, 'UNKNOWN'))
+
 
 def ABK_get_error_text(error_code):
     if not isinstance(error_code, int):

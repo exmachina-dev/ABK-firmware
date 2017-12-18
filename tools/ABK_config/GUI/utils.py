@@ -451,7 +451,6 @@ class QFabricScene(QGraphicsScene):
         self.parentView.scale(2.0, 2.0)
 
         self.fabricPreview = Fabric(width=0, height=0, pickup_point=True, scale=10)
-        # self.fabricSizeText = QText(
 
         self.addItem(self.fabricPreview)
 
@@ -461,9 +460,9 @@ class QFabricScene(QGraphicsScene):
         self.parentView.fitInView(self.fabricPreview.boundingRect(), Qt.KeepAspectRatio)
 
 
-
 class ABKFabric(QObject):
     surfaceChanged = pyqtSignal(float)
+    weightChanged = pyqtSignal(float)
     lengthChanged = pyqtSignal(float)
     accelerationChanged = pyqtSignal(float)
     decelerationChanged = pyqtSignal(float)
@@ -472,6 +471,7 @@ class ABKFabric(QObject):
     def __init__(self, *args, **kwargs):
         self._width = kwargs.pop('width', 0)
         self._height = kwargs.pop('height', 0)
+        self._density = kwargs.pop('density', 0)
         self._cable_length = kwargs.pop('cable_length', 0)
         self._pickup_point_x = kwargs.pop('pickup_point_x', 0.5)
         self._pickup_point_y = kwargs.pop('pickup_point_y', 0.5)
@@ -493,6 +493,10 @@ class ABKFabric(QObject):
         return self._height
 
     @property
+    def density(self):
+        return self._density
+
+    @property
     def cable_length(self):
         return self._cable_length
 
@@ -507,6 +511,10 @@ class ABKFabric(QObject):
     @property
     def surface(self):
         return float(self.width * self.height)
+
+    @property
+    def weight(self):
+        return float(self.density * self.surface / 1000)
 
     @property
     def length(self):
@@ -608,6 +616,7 @@ class ABKFabric(QObject):
         self._width = max(0, float(w))
         self.surfaceChanged.emit(self.surface)
         self.lengthChanged.emit(self.length)
+        self.weightChanged.emit(self.weight)
         self.profileChanged.emit(self.time_profile)
 
     @height.setter
@@ -615,7 +624,13 @@ class ABKFabric(QObject):
         self._height = max(0, float(h))
         self.surfaceChanged.emit(self.surface)
         self.lengthChanged.emit(self.length)
+        self.weightChanged.emit(self.weight)
         self.profileChanged.emit(self.time_profile)
+
+    @density.setter
+    def density(self, de):
+        self._density = max(0, float(de))
+        self.weightChanged.emit(self.weight)
 
     @cable_length.setter
     def cable_length(self, cb):
@@ -680,6 +695,10 @@ class ABKFabric(QObject):
     @pyqtSlot(float)
     def setHeight(self, h):
         self.height = h
+
+    @pyqtSlot(float)
+    def setDensity(self, de):
+        self.density = de
 
     @pyqtSlot(float)
     def setCableLength(self, cb):

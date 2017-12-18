@@ -51,8 +51,6 @@ class ABKConfig(QMainWindow):
         openAction = fileMenu.addAction('Load from file')
         saveAction = fileMenu.addAction('Save to file')
         fileMenu.addSeparator()
-        optionAction = fileMenu.addAction('Options')
-        fileMenu.addSeparator()
         quitAction = fileMenu.addAction('Quit')
 
         openAction.setShortcut('Ctrl+O')
@@ -62,7 +60,6 @@ class ABKConfig(QMainWindow):
 
         openAction.triggered.connect(self.doOpen)
         saveAction.triggered.connect(self.doSave)
-        optionAction.triggered.connect(self.doOption)
         quitAction.triggered.connect(self.doQuit)
 
         aboutAction = self.menuBar().addAction('About')
@@ -86,9 +83,6 @@ class ABKConfig(QMainWindow):
 
         self.graphPoints = list()
 
-        self.fabric = ABKFabric()
-        self.doFabricConfig()
-
         for i in range(self.NTIMEPOINTS + 1):
             self.graphPoints.append((
                 self.main.findChild(QSpinBox, 'x%dSpinBox' % i),
@@ -98,6 +92,9 @@ class ABKConfig(QMainWindow):
         self.fabricHeight = self.main.findChild(QDoubleSpinBox, 'fabricHeightDoubleSpinBox')
         self.fabricSurface = self.main.findChild(QDoubleSpinBox, 'fabricSurfaceDoubleSpinBox')
         self.fabricLength = self.main.findChild(QDoubleSpinBox, 'fabricLengthDoubleSpinBox')
+
+        self.fabricDensity = self.main.findChild(QDoubleSpinBox, 'fabricDensityDoubleSpinBox')
+        self.fabricWeight = self.main.findChild(QDoubleSpinBox, 'fabricWeightDoubleSpinBox')
 
         self.cableLength = self.main.findChild(QDoubleSpinBox, 'cableLengthDoubleSpinBox')
         self.pickupPointX = self.main.findChild(QSpinBox, 'pickupPointXSpinBox')
@@ -109,6 +106,9 @@ class ABKConfig(QMainWindow):
         self.acceleration = self.main.findChild(QDoubleSpinBox, 'accelerationDoubleSpinBox')
         self.decelTime = self.main.findChild(QSpinBox, 'decelerationTimeSpinBox')
         self.deceleration = self.main.findChild(QDoubleSpinBox, 'decelerationDoubleSpinBox')
+
+        self.fabric = ABKFabric()
+        self.doFabricConfig()
 
         self.initPreview()
 
@@ -137,6 +137,8 @@ class ABKConfig(QMainWindow):
         self.fabricHeight.valueChanged[float].connect(self.fabricScene.fabricPreview.setHeight)
         self.fabricHeight.valueChanged[float].connect(self.fabric.setHeight)
 
+        self.fabricDensity.valueChanged[float].connect(self.fabric.setDensity)
+
         self.cableLength.valueChanged[float].connect(self.fabric.setCableLength)
         self.pickupPointX.valueChanged[int].connect(self.fabricScene.fabricPreview.setPickupPointX)
         self.pickupPointX.valueChanged[int].connect(self.fabric.setPickupPointX)
@@ -145,6 +147,8 @@ class ABKConfig(QMainWindow):
 
         self.fabric.surfaceChanged.connect(self.fabricSurface.setValue)
         self.fabric.lengthChanged.connect(self.fabricLength.setValue)
+
+        self.fabric.weightChanged.connect(self.fabricWeight.setValue)
 
         self.nominalSpeed.valueChanged[float].connect(self.fabric.setNominalSpeed)
         self.accelTime.valueChanged[int].connect(self.fabric.setAccelTime)
@@ -157,7 +161,8 @@ class ABKConfig(QMainWindow):
         self.fabric.profileChanged.connect(self.setCurrentConfig)
         self.configChanged.connect(self.doFabricConfig)
 
-        # self.fabric.surfaceChanged.connect(self._surfaceCheck)
+        self.fabric.surfaceChanged.connect(self._surfaceCheck)
+        self.fabric.weightChanged.connect(self._weightCheck)
 
 
     def initSerialCommands(self):
@@ -315,21 +320,47 @@ class ABKConfig(QMainWindow):
             self.setStatusMessage('Not connected to device')
             return
 
-        self.setStatusMessage('Writting config to device...')
-        self.disableActions()
+        surface = self.fabric.surface
+        weight = self.fabric.weight
 
-        i, j = 0, len(self.getCurrentConfig())
-        for k, v in self.getCurrentConfig().items():
-            data = 'set {} {:d}'.format(k, v).encode() + b'\n'
-            QTimer.singleShot(500*i, partial(self.setStatusMessage, 'Writting config to device... {:d}%'.format(int(i/j*100))))
-            QTimer.singleShot(500*i, partial(self.serialSend, data))
+        surface_status = self._surfaceCheck(surface, paint=False)
+        weight_status = self._weightCheck(weight, paint=False)
+        approve = QMessageBox.Yes
 
-            i += 1
+        if not surface_status or not weight_status:
+            s = list()
+            if not surface_status:
+                s.append('surface')
+            if not weight_status:
+                s.append('weight')
 
-        QTimer.singleShot((500*i) + 100, partial(self.serialSend, b'save\n'))
-        QTimer.singleShot((500*i) + 200, self.doDeviceReset)
-        self.setStatusMessage('Config written to device.')
-        self.enableActions()
+            s = ' and '.join(s)
+            s = s[0].upper() + s[1:]
+            approve = QMessageBox.warning(self,'Confirmation',
+                '''%s exceeds maximum capacity, do you want to continue?<br/>
+                Note: <b>this is not recommended</b>.''' % s,
+                QMessageBox.Yes | QMessageBox.No)
+
+        if approve == QMessageBox.Yes:
+            self.setStatusMessage('Writting config to device...')
+            self.disableActions()
+
+            i, j = 0, len(self.getCurrentConfig())
+            for k, v in self.getCurrentConfig().items():
+                data = 'set {} {:d}'.format(k, v).encode() + b'\n'
+                QTimer.singleShot(500*i, partial(self.setStatusMessage, 'Writting config to device... {:d}%'.format(int(i/j*100))))
+                QTimer.singleShot(500*i, partial(self.serialSend, data))
+
+                i += 1
+
+            QTimer.singleShot((500*i) + 100, partial(self.serialSend, b'save\n'))
+            QTimer.singleShot((500*i) + 200, self.doDeviceReset)
+            self.setStatusMessage('Config written to device.')
+            QMessageBox.information(self,'Notice',
+                "Parameters saved to device")
+            self.enableActions()
+        else:
+            return
 
     def doDeviceReset(self):
         if self.connectedVersion and self.connectedVersion[0] >= 2 and self.connectedVersion[1] >= 0:
@@ -386,14 +417,6 @@ Source code cound be found on Github at
 https://github.com/exmachina-dev/ABK-firmware/tree/master/tools
         ''', QMessageBox.Ok)
 
-    def doOption(self):
-        cfg, o = OptionDialog.getOptions(self)
-        if o:
-            self.serialBaud(cfg['serial_baud'])
-            self._maximum_speed = cfg['maximum_speed']
-            self._speed_factor = cfg['speed_factor']
-            self.configChanged.emit(cfg)
-
     def doOptionLoad(self):
         try:
             with open(self.OPTIONSFILE, 'r') as f:
@@ -418,9 +441,16 @@ https://github.com/exmachina-dev/ABK-firmware/tree/master/tools
         if not cfg:
             cfg = {}
         self.fabric.maximum_speed = float(cfg.get('maximum_speed',
-            self._maximum_speed or 10))
+            self._maximum_speed or 7.5))
         self.fabric.speed_factor = float(cfg.get('speed_factor',
             self._speed_factor or 3.5))
+        self.fabric.minimum_acceltime = float(cfg.get('minimum_acceltime',
+            self._minimum_acceltime or 200.0))
+
+        self.nominalSpeed.setMinimum(0)
+        self.nominalSpeed.setMaximum(self.fabric.maximum_speed)
+        self.accelTime.setMinimum(self.fabric.minimum_acceltime)
+        self.decelTime.setMinimum(self.fabric.minimum_acceltime)
 
     def doQuit(self):
         self.doOptionSave()
@@ -458,17 +488,28 @@ https://github.com/exmachina-dev/ABK-firmware/tree/master/tools
         return cfg
 
     def setCurrentOptions(self, cfg):
-        opts = ('serial_baud', 'maximum_speed', 'speed_factor', 'max_surface',)
+        opts = ('serial_baud', 'maximum_speed', 'speed_factor',
+                'maximum_surface', 'maximum_weight', 'minimum_acceltime', )
 
         for k, v in cfg.items():
             if k in opts:
                 setattr(self, '_' + k, v)
 
+        self._serial_baud = float(self._serial_baud)
+        self._speed_factor = float(self._speed_factor)
+        self._maximum_speed = float(self._maximum_speed)
+        self._maximum_surface = float(self._maximum_surface)
+        self._maximum_weight = float(self._maximum_weight)
+        self._minimum_acceltime = float(self._minimum_acceltime)
+
     def getCurrentOptions(self):
         cfg = {}
         cfg['serial_baud'] = self._serial_baud or 115200
-        cfg['maximum_speed'] = self._maximum_speed or 10
+        cfg['maximum_speed'] = self._maximum_speed or 7.5
         cfg['speed_factor'] = self._speed_factor or 3.5
+        cfg['maximum_surface'] = self._maximum_surface or 100.0
+        cfg['maximum_weight'] = self._maximum_weight or 15
+        cfg['minimum_acceltime'] = self._minimum_acceltime or 200.0
 
         return cfg
 
@@ -516,6 +557,32 @@ https://github.com/exmachina-dev/ABK-firmware/tree/master/tools
             self.main.findChild(QPushButton, 'slowfeedForwardButton').setEnabled(True)
             self.main.findChild(QPushButton, 'slowfeedRewindButton').setEnabled(True)
             self.main.findChild(QPushButton, 'statusButton').setEnabled(True)
+
+    def _surfaceCheck(self, surface, paint=True):
+        is_ok = False
+        if 0 <= surface <= self._maximum_surface:
+            is_ok = True
+
+        if paint:
+            if is_ok:
+                self.fabricSurface.setStyleSheet("")
+            else:
+                self.fabricSurface.setStyleSheet("background-color : red ; color : black")
+
+        return is_ok
+
+    def _weightCheck(self, weight, paint=True):
+        is_ok = False
+        if 0 <= weight <= self._maximum_weight:
+            is_ok = True
+
+        if paint:
+            if is_ok:
+                self.fabricWeight.setStyleSheet("")
+            else:
+                self.fabricWeight.setStyleSheet("background-color : red ; color : black")
+
+        return is_ok
 
 
 if __name__ == '__main__':
