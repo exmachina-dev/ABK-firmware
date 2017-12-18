@@ -264,6 +264,9 @@
                <verstretch>0</verstretch>
               </sizepolicy>
              </property>
+             <property name="focusPolicy">
+              <enum>Qt::NoFocus</enum>
+             </property>
              <property name="layoutDirection">
               <enum>Qt::LeftToRight</enum>
              </property>
@@ -378,6 +381,9 @@
                </item>
                <item row="1" column="6">
                 <widget class="QGraphicsView" name="fabricView">
+                 <property name="focusPolicy">
+                  <enum>Qt::NoFocus</enum>
+                 </property>
                  <property name="lineWidth">
                   <number>2</number>
                  </property>
@@ -1150,6 +1156,22 @@
   <tabstop>slowfeedRewindButton</tabstop>
   <tabstop>slowfeedForwardButton</tabstop>
   <tabstop>profileView</tabstop>
+  <tabstop>tabWidget</tabstop>
+  <tabstop>fabricWidthDoubleSpinBox</tabstop>
+  <tabstop>fabricHeightDoubleSpinBox</tabstop>
+  <tabstop>fabricDensityDoubleSpinBox</tabstop>
+  <tabstop>fabricWeightDoubleSpinBox</tabstop>
+  <tabstop>fabricSurfaceDoubleSpinBox</tabstop>
+  <tabstop>fabricLengthDoubleSpinBox</tabstop>
+  <tabstop>cableLengthDoubleSpinBox</tabstop>
+  <tabstop>pickupPointXSpinBox</tabstop>
+  <tabstop>pickupPointYSpinBox</tabstop>
+  <tabstop>nominalSpeedDoubleSpinBox</tabstop>
+  <tabstop>accelerationTimeSpinBox</tabstop>
+  <tabstop>decelerationTimeSpinBox</tabstop>
+  <tabstop>startDelaySpinBox</tabstop>
+  <tabstop>accelerationDoubleSpinBox</tabstop>
+  <tabstop>decelerationDoubleSpinBox</tabstop>
   <tabstop>x1SpinBox</tabstop>
   <tabstop>x2SpinBox</tabstop>
   <tabstop>y2SpinBox</tabstop>
@@ -1158,22 +1180,12 @@
   <tabstop>x4SpinBox</tabstop>
   <tabstop>y4SpinBox</tabstop>
   <tabstop>x5SpinBox</tabstop>
+  <tabstop>fabricView</tabstop>
   <tabstop>getConfigButton</tabstop>
   <tabstop>saveConfigButton</tabstop>
   <tabstop>resetButton</tabstop>
   <tabstop>eraseButton</tabstop>
   <tabstop>statusButton</tabstop>
-  <tabstop>fabricWidthDoubleSpinBox</tabstop>
-  <tabstop>fabricHeightDoubleSpinBox</tabstop>
-  <tabstop>cableLengthDoubleSpinBox</tabstop>
-  <tabstop>pickupPointXSpinBox</tabstop>
-  <tabstop>pickupPointYSpinBox</tabstop>
-  <tabstop>nominalSpeedDoubleSpinBox</tabstop>
-  <tabstop>startDelaySpinBox</tabstop>
-  <tabstop>accelerationTimeSpinBox</tabstop>
-  <tabstop>decelerationTimeSpinBox</tabstop>
-  <tabstop>accelerationDoubleSpinBox</tabstop>
-  <tabstop>decelerationDoubleSpinBox</tabstop>
  </tabstops>
  <resources/>
  <connections/>
