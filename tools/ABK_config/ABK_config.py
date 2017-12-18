@@ -331,8 +331,17 @@ class ABKConfig(QMainWindow):
         approve = QMessageBox.Yes
 
         if not surface_status or not weight_status:
-            approve = QMessageBox.question(self,'Confirmation',
-                "Surface and/or weight exceeds maximum capicity, do you want to continue (not recommended)?",
+            s = list()
+            if not surface_status:
+                s.append('surface')
+            if not weight_status:
+                s.append('weight')
+
+            s = ' and '.join(s)
+            s = s[0].upper() + s[1:]
+            approve = QMessageBox.warning(self,'Confirmation',
+                '''%s exceeds maximum capacity, do you want to continue?<br/>
+                Note: <b>this is not recommended</b>.''' % s,
                 QMessageBox.Yes | QMessageBox.No)
 
         if approve == QMessageBox.Yes:
