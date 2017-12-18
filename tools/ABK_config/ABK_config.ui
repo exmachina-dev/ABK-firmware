@@ -720,7 +720,7 @@
                   <item row="0" column="3">
                    <widget class="QDoubleSpinBox" name="fabricDensityDoubleSpinBox">
                     <property name="suffix">
-                     <string> g/m2</string>
+                     <string> g/m²</string>
                     </property>
                     <property name="maximum">
                      <double>999.899999999999977</double>
