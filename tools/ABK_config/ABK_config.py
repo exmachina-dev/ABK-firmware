@@ -323,21 +323,39 @@ class ABKConfig(QMainWindow):
             self.setStatusMessage('Not connected to device')
             return
 
-        self.setStatusMessage('Writting config to device...')
-        self.disableActions()
+        surface = self.fabric.surface
+        weight = self.fabric.weight
 
-        i, j = 0, len(self.getCurrentConfig())
-        for k, v in self.getCurrentConfig().items():
-            data = 'set {} {:d}'.format(k, v).encode() + b'\n'
-            QTimer.singleShot(500*i, partial(self.setStatusMessage, 'Writting config to device... {:d}%'.format(int(i/j*100))))
-            QTimer.singleShot(500*i, partial(self.serialSend, data))
+        surface_status = self._surfaceCheck(surface)
+        weight_status = self._weightCheck(weight)
 
-            i += 1
+        approve = QMessageBox.Yes
 
-        QTimer.singleShot((500*i) + 100, partial(self.serialSend, b'save\n'))
-        QTimer.singleShot((500*i) + 200, self.doDeviceReset)
-        self.setStatusMessage('Config written to device.')
-        self.enableActions()
+        if not surface_status or weight_status:
+            approve = QMessageBox.question(self,'Confirmation',
+                "Surface and/or weight exceeds maximum capicity, do you want to continue (not recommended)?",
+                QMessageBox.Yes | QMessageBox.No)
+
+        if approve == QMessageBox.Yes:
+            self.setStatusMessage('Writting config to device...')
+            self.disableActions()
+
+            i, j = 0, len(self.getCurrentConfig())
+            for k, v in self.getCurrentConfig().items():
+                data = 'set {} {:d}'.format(k, v).encode() + b'\n'
+                QTimer.singleShot(500*i, partial(self.setStatusMessage, 'Writting config to device... {:d}%'.format(int(i/j*100))))
+                QTimer.singleShot(500*i, partial(self.serialSend, data))
+
+                i += 1
+
+            QTimer.singleShot((500*i) + 100, partial(self.serialSend, b'save\n'))
+            QTimer.singleShot((500*i) + 200, self.doDeviceReset)
+            self.setStatusMessage('Config written to device.')
+            QMessageBox.information(self,'Notice',
+                "Parameters saved to device")
+            self.enableActions()
+        else:
+            return
 
     def doDeviceReset(self):
         if self.connectedVersion and self.connectedVersion[0] >= 2 and self.connectedVersion[1] >= 0:
