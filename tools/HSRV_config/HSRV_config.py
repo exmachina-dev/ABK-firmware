@@ -17,7 +17,7 @@ from GUI.utils import QGraphicsCircleItem, LinkedLines, Fabric, HSRVFabric, Opti
 from GUI.utils import QTimeScene, QFabricScene
 from serial_utils import SerialThread, QSerial
 
-VERSION = '2.1'
+VERSION = '2.2'
 
 class HSRVConfig(QMainWindow):
     UIFILE = 'res/HSRV_config.ui'
