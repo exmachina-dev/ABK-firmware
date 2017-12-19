@@ -1068,6 +1068,9 @@
           <property name="text">
            <string>Status</string>
           </property>
+          <property name="alignment">
+           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+          </property>
          </widget>
         </item>
         <item>
@@ -1090,6 +1093,9 @@
          <widget class="QLabel" name="errorLabel">
           <property name="text">
            <string>Error codes</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
           </property>
          </widget>
         </item>
