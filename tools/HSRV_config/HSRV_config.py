@@ -12,16 +12,16 @@ import time
 import os.path
 from serial.tools import list_ports
 
-from ABK.utils import ABK_STATE, ABK_ERROR, ABK_get_status_text, ABK_get_error_text
-from GUI.utils import QGraphicsCircleItem, LinkedLines, Fabric, ABKFabric, OptionDialog
+from HSRV.utils import HSRV_STATE, HSRV_ERROR, HSRV_get_status_text, HSRV_get_error_text
+from GUI.utils import QGraphicsCircleItem, LinkedLines, Fabric, HSRVFabric, OptionDialog
 from GUI.utils import QTimeScene, QFabricScene
 from serial_utils import SerialThread, QSerial
 
 VERSION = '2.1'
 
-class ABKConfig(QMainWindow):
-    UIFILE = '.\ABK_config.ui'
-    OPTIONSFILE = '.\ABK_config.ini'
+class HSRVConfig(QMainWindow):
+    UIFILE = 'res/HSRV_config.ui'
+    OPTIONSFILE = 'conf/HSRV_config.ini'
     NTIMEPOINTS = 6
     BAUDRATES = (9600, 19200, 38400, 57600, 115200)
 
@@ -30,20 +30,23 @@ class ABKConfig(QMainWindow):
     def __init__(self):
         super().__init__()
 
-        OptionDialog.BAUDRATES = ABKConfig.BAUDRATES
-        QTimeScene.NTIMEPOINTS = ABKConfig.NTIMEPOINTS
+        OptionDialog.BAUDRATES = HSRVConfig.BAUDRATES
+        QTimeScene.NTIMEPOINTS = HSRVConfig.NTIMEPOINTS
 
         self._maximum_speed = None
+        self._maximum_surface = None
+        self._maximum_weight = None
+        self._minimum_acceltime = None
         self._speed_factor = None
         self._serial_baud = None
         self.initUi()
 
     def initUi(self):
-        self.setWindowTitle('ABK Configuration tool')
+        self.setWindowTitle('HiSpeed Reveal Configuration Tool')
 
         _path = os.path.dirname(os.path.realpath(__file__))
-        self.OPTIONSFILE = _path + self.OPTIONSFILE
-        self.main = uic.loadUi(_path + self.UIFILE)
+        self.OPTIONSFILE = os.path.join(_path, self.OPTIONSFILE)
+        self.main = uic.loadUi(os.path.join(_path, self.UIFILE))
         self.setCentralWidget(self.main)
 
         fileMenu = self.menuBar().addMenu('File')
@@ -107,7 +110,7 @@ class ABKConfig(QMainWindow):
         self.decelTime = self.main.findChild(QSpinBox, 'decelerationTimeSpinBox')
         self.deceleration = self.main.findChild(QDoubleSpinBox, 'decelerationDoubleSpinBox')
 
-        self.fabric = ABKFabric()
+        self.fabric = HSRVFabric()
         self.doFabricConfig()
 
         self.initPreview()
@@ -260,9 +263,9 @@ class ABKConfig(QMainWindow):
             elif data[0] == b'status\n':
                 d = data[1].decode().strip('\r\n').split()
                 self.main.findChild(QLineEdit, 'statusLineEdit').setText(
-                        ABK_get_status_text(int(d[1], 16)))
+                        HSRV_get_status_text(int(d[1], 16)))
                 self.main.findChild(QLineEdit, 'errorLineEdit').setText(
-                        ABK_get_error_text(int(d[3], 16)))
+                        HSRV_get_error_text(int(d[3], 16)))
             else:
                 print(' '.join([x.decode() for x in data]))
         except UnicodeDecodeError:
@@ -409,12 +412,12 @@ class ABKConfig(QMainWindow):
 
     def doAbout(self):
         about = QMessageBox.information(self, 'About',
-        '''ABK configuration tool — version: v''' + str(VERSION) + '''
+        '''HiSpeed Reveal Configuration Tool — version: <b>v''' + str(VERSION) + '''</b><br /><br />
 
-Copyright ExMachina 2017 — Released under MIT license
+Copyright ExMachina 2017 — Released under <b>MIT</b> license<br /><br />
 
-Source code cound be found on Github at
-https://github.com/exmachina-dev/ABK-firmware/tree/master/tools
+Source code can be found at our
+<a href="https://github.com/exmachina-dev/HSRV-firmware/tree/master/tools/HSRV_config/">GitHub repository</a>
         ''', QMessageBox.Ok)
 
     def doOptionLoad(self):
@@ -495,12 +498,12 @@ https://github.com/exmachina-dev/ABK-firmware/tree/master/tools
             if k in opts:
                 setattr(self, '_' + k, v)
 
-        self._serial_baud = float(self._serial_baud)
-        self._speed_factor = float(self._speed_factor)
-        self._maximum_speed = float(self._maximum_speed)
-        self._maximum_surface = float(self._maximum_surface)
-        self._maximum_weight = float(self._maximum_weight)
-        self._minimum_acceltime = float(self._minimum_acceltime)
+        self._serial_baud = int(self._serial_baud or 115200)
+        self._speed_factor = float(self._speed_factor or 3.5)
+        self._maximum_speed = float(self._maximum_speed or 7.5)
+        self._maximum_surface = float(self._maximum_surface or 100.0)
+        self._maximum_weight = float(self._maximum_weight or 15.0)
+        self._minimum_acceltime = float(self._minimum_acceltime or 200.0)
 
     def getCurrentOptions(self):
         cfg = {}
@@ -589,6 +592,6 @@ if __name__ == '__main__':
 
     app = QApplication(sys.argv)
 
-    w = ABKConfig()
+    w = HSRVConfig()
 
     sys.exit(app.exec_())

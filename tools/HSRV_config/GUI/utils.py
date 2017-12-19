@@ -460,7 +460,7 @@ class QFabricScene(QGraphicsScene):
         self.parentView.fitInView(self.fabricPreview.boundingRect(), Qt.KeepAspectRatio)
 
 
-class ABKFabric(QObject):
+class HSRVFabric(QObject):
     surfaceChanged = pyqtSignal(float)
     weightChanged = pyqtSignal(float)
     lengthChanged = pyqtSignal(float)
