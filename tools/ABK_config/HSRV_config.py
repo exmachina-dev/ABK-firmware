@@ -34,6 +34,9 @@ class HSRVConfig(QMainWindow):
         QTimeScene.NTIMEPOINTS = HSRVConfig.NTIMEPOINTS
 
         self._maximum_speed = None
+        self._maximum_surface = None
+        self._maximum_weight = None
+        self._minimum_acceltime = None
         self._speed_factor = None
         self._serial_baud = None
         self.initUi()
@@ -495,12 +498,12 @@ Source code can be found at our
             if k in opts:
                 setattr(self, '_' + k, v)
 
-        self._serial_baud = float(self._serial_baud)
-        self._speed_factor = float(self._speed_factor)
-        self._maximum_speed = float(self._maximum_speed)
-        self._maximum_surface = float(self._maximum_surface)
-        self._maximum_weight = float(self._maximum_weight)
-        self._minimum_acceltime = float(self._minimum_acceltime)
+        self._serial_baud = int(self._serial_baud or 115200)
+        self._speed_factor = float(self._speed_factor or 3.5)
+        self._maximum_speed = float(self._maximum_speed or 7.5)
+        self._maximum_surface = float(self._maximum_surface or 100.0)
+        self._maximum_weight = float(self._maximum_weight or 15.0)
+        self._minimum_acceltime = float(self._minimum_acceltime or 200.0)
 
     def getCurrentOptions(self):
         cfg = {}
